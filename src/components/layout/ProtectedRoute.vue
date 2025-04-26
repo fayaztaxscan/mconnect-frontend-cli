@@ -23,7 +23,6 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { useAuth }   from '@/composables/useAuth';
-import UserMenu      from '@/components/UserMenu.vue';
 
 const { isLoggedIn, logout } = useAuth();
 const router = useRouter();

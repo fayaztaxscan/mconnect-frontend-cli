@@ -1,17 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuth }                        from '@/composables/useAuth';
 
-import LoginView        from '@/views/LoginView.vue';
-import ProtectedRoute   from '@/components/ProtectedRoute.vue';
-import AdminDashboard   from '@/views/AdminDashboard.vue';
-import CSRDashboard     from '@/views/CSRDashboard.vue';
-import SalesDashboard   from '@/views/SalesDashboard.vue';
-import RewardRedemption from '@/views/RewardRedemption.vue';
-import ReportsView      from '@/views/ReportsView.vue';
-import SettingsView     from '@/views/SettingsView.vue';
-import AddUserView      from '@/views/AddUserView.vue';
-import ManageUsersView  from '@/views/ManageUsersView.vue';
-import EditUserView     from '@/views/EditUserView.vue';
+import LoginView        from '@/views/auth/LoginView.vue';
+import AdminDashboard   from '@/views/dashboard/AdminDashboard.vue';
+import CSRDashboard     from '@/views/dashboard/CSRDashboard.vue';
+import SalesDashboard   from '@/views/dashboard/SalesDashboard.vue';
+import RewardRedemption from '@/views/dashboard/RewardRedemption.vue';
+import SettingsView     from '@/views/settings/SettingsView.vue';
+import AddUserView      from '@/views/users/AddUserView.vue';
+import ManageUsersView  from '@/views/users/ManageUsersView.vue';
+import ProtectedRoute from '@/components/layout/ProtectedRoute.vue';
+import EditUserView from '@/views/users/EditUserView.vue';
+import ReportsView from '@/views/dashboard/ReportsView.vue';
+
+
 
 const routes = [
   {

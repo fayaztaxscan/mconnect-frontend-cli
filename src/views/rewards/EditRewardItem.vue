@@ -1,8 +1,9 @@
+<!-- src/views/rewards/EditRewardItem.vue -->
 <template>
   <div class="p-4 max-w-lg mx-auto mt-8">
-    <h1 class="text-2xl font-semibold mb-6">New Reward Item</h1>
+    <h1 class="text-2xl font-semibold mb-6">Edit Reward Item</h1>
 
-    <div v-if="loading" class="text-center py-8">Loading categories…</div>
+    <div v-if="loading" class="text-center py-8">Loading…</div>
     <div v-else-if="error" class="text-red-500 mb-4">{{ error }}</div>
 
     <form v-else @submit.prevent="onSubmit" class="bg-white p-6 rounded-lg shadow-md space-y-4">
@@ -36,7 +37,7 @@
         </select>
       </div>
 
-      <!-- Points Required -->
+      <!-- Points required -->
       <div>
         <label class="block mb-1 font-medium">Points Required</label>
         <input
@@ -61,7 +62,7 @@
         />
       </div>
 
-      <!-- Available Stock -->
+      <!-- Stock -->
       <div>
         <label class="block mb-1 font-medium">Available Stock</label>
         <input
@@ -89,15 +90,17 @@
       <!-- Actions -->
       <div class="flex justify-end space-x-3 pt-4 border-t">
         <router-link
-          :to="{ name: 'ManageRewardItems' }"
+          :to="{ name: 'ViewRewardItem', params: { id } }"
           class="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-        >Cancel</router-link>
+        >
+          Cancel
+        </router-link>
         <button
           type="submit"
-          class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500"
+          class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
           :disabled="saving"
         >
-          {{ saving ? 'Saving…' : 'Save' }}
+          {{ saving ? 'Saving…' : 'Save Changes' }}
         </button>
       </div>
     </form>
@@ -106,16 +109,21 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { createRewardItem } from '@/services/rewardItems';
+import { useRoute, useRouter } from 'vue-router';
+import {
+  getRewardItem,
+  updateRewardItem
+} from '@/services/rewardItems';
 import { getRewardCategories } from '@/services/rewardCategories';
 
+const route = useRoute();
 const router = useRouter();
-const loading = ref(false);
-const saving = ref(false);
-const error = ref('');
-const categories = ref([]);
+const id     = +route.params.id;
 
+const loading    = ref(false);
+const saving     = ref(false);
+const error      = ref('');
+const categories = ref([]);
 const form = ref({
   name: '',
   reward_category_id: null,
@@ -125,34 +133,50 @@ const form = ref({
   status: 'active'
 });
 
-// Load categories on mount
-async function fetchCategories() {
+async function fetchData() {
   loading.value = true;
   try {
-    const { data } = await getRewardCategories();
-    categories.value = data;
+    // load the item and categories in parallel
+    const [
+      { data: itemData },
+      { data: cats }
+    ] = await Promise.all([
+      getRewardItem(id),
+      getRewardCategories()
+    ]);
+
+    // populate form
+    Object.assign(form.value, {
+      name: itemData.name,
+      reward_category_id: itemData.reward_category_id,
+      points_required: itemData.points_required,
+      market_mrp: itemData.market_mrp,
+      available_stock: itemData.available_stock,
+      status: itemData.status
+    });
+
+    categories.value = cats;
   } catch (e) {
-    error.value = 'Failed to load categories.';
+    error.value = 'Failed to load reward item or categories.';
   } finally {
     loading.value = false;
   }
 }
 
-// Handle form submit
 async function onSubmit() {
   saving.value = true;
-  error.value = '';
+  error.value  = '';
   try {
-    const { data } = await createRewardItem(form.value);
-    router.push({ name: 'ViewRewardItem', params: { id: data.id } });
+    await updateRewardItem(id, form.value);
+    router.push({ name: 'ViewRewardItem', params: { id } });
   } catch (e) {
-    error.value = e.response?.data?.error || 'Failed to create item.';
+    error.value = e.response?.data?.error || 'Failed to save changes.';
   } finally {
     saving.value = false;
   }
 }
 
-onMounted(fetchCategories);
+onMounted(fetchData);
 </script>
 
 <style scoped>

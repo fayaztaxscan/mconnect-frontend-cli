@@ -37,7 +37,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '@/services/api';
+import api from '@/services/api';           // this is still your axios instance
 import { useAuth } from '@/composables/useAuth';
 
 const email = ref('');
@@ -49,7 +49,14 @@ const { login } = useAuth();
 async function handleSubmit() {
   loading.value = true;
   try {
-    const { data } = await api.login({ email: email.value, password: password.value });
+    // ─────────────────────────────────────────────────────────────────────────
+    // Replace api.login(...) with a direct POST to "/auth/login"
+    const { data } = await api.post('/auth/login', {
+      email: email.value,
+      password: password.value,
+    });
+    // ─────────────────────────────────────────────────────────────────────────
+
     login(data.token);
     router.push({ name: 'AdminDashboard' });
   } catch (err) {

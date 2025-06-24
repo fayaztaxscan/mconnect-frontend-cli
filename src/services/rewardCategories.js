@@ -9,6 +9,14 @@ export function getRewardCategories() {
 }
 
 /**
+ * Fetch a single reward category by ID.
+ * @param {number|string} id
+ */
+export function getRewardCategory(id) {
+  return api.get(`/reward-categories/${id}`);
+}
+
+/**
  * Create a new reward category.
  * @param {{ name: string, description?: string }} data
  */
@@ -18,7 +26,7 @@ export function createRewardCategory(data) {
 
 /**
  * Update an existing reward category by ID.
- * @param {number} id
+ * @param {number|string} id
  * @param {{ name: string, description?: string }} data
  */
 export function updateRewardCategory(id, data) {
@@ -27,7 +35,7 @@ export function updateRewardCategory(id, data) {
 
 /**
  * Delete a reward category by ID.
- * @param {number} id
+ * @param {number|string} id
  */
 export function deleteRewardCategory(id) {
   return api.delete(`/reward-categories/${id}`);

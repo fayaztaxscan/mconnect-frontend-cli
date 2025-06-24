@@ -1,46 +1,101 @@
+<!-- src/components/layout/SideMenu.vue -->
 <template>
   <aside class="w-64 bg-gray-800 text-gray-100 flex flex-col h-screen">
     <div class="px-4 py-6 text-lg font-semibold border-b border-gray-700">
       Admin Menu
     </div>
+
     <nav class="flex-1 overflow-y-auto">
       <ul class="mt-2">
-        <li v-for="item in menuItems" :key="item.name" class="mb-1">
+        <!-- Rewards -->
+        <li class="mb-1">
           <div
-            @click="selectMenu(item)"
-            :class="[
-              'flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-700',
-              { 'bg-gray-700': activeSection === item.name }
-            ]"
+            @click="toggle('Rewards')"
+            class="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-700"
+            :class="{ 'bg-gray-700': activeSection === 'Rewards' }"
           >
-            <span>{{ item.label }}</span>
+            <span>Rewards</span>
             <svg
-              v-if="item.children"
-              :class="['w-4 h-4 transition-transform', { 'rotate-90': activeSection === item.name }]"
+              class="w-4 h-4 transition-transform"
+              :class="{ 'rotate-90': activeSection === 'Rewards' }"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
             >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5l7 7-7 7"/>
             </svg>
           </div>
-          <ul v-if="item.children && activeSection === item.name" class="bg-gray-700">
-            <li v-for="sub in item.children" :key="sub.name">
+          <ul v-if="activeSection === 'Rewards'" class="bg-gray-700">
+            <li>
               <router-link
-                :to="sub.to"
-                class="block px-8 py-2 text-gray-200 hover:bg-gray-600"
-                active-class="bg-gray-600 text-white"
-              >
-                {{ sub.label }}
-              </router-link>
+                :to="{ name: 'ManageRewardCategories' }"
+                class="block px-8 py-2 hover:bg-gray-600"
+              >Categories</router-link>
+            </li>
+            <li>
+              <router-link
+                :to="{ name: 'ManageRewardItems' }"
+                class="block px-8 py-2 hover:bg-gray-600"
+              >Items</router-link>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Settings (without "General") -->
+        <li class="mb-1">
+          <div
+            @click="toggle('Settings')"
+            class="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-700"
+            :class="{ 'bg-gray-700': activeSection === 'Settings' }"
+          >
+            <span>Settings</span>
+            <svg
+              class="w-4 h-4 transition-transform"
+              :class="{ 'rotate-90': activeSection === 'Settings' }"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5l7 7-7 7"/>
+            </svg>
+          </div>
+          <ul v-if="activeSection === 'Settings'" class="bg-gray-700">
+            <li>
+              <router-link
+                :to="{ name: 'AuditLogs' }"
+                class="block px-8 py-2 hover:bg-gray-600"
+              >Audit Logs</router-link>
+            </li>
+            <li>
+              <router-link
+                :to="{ name: 'ManageUsers' }"
+                class="block px-8 py-2 hover:bg-gray-600"
+              >Users</router-link>
+            </li>
+            <li>
+              <router-link
+                :to="{ name: 'DealersList' }"
+                class="block px-8 py-2 hover:bg-gray-600"
+              >Dealers</router-link>
+            </li>
+            <li>
+              <router-link
+                :to="{ name: 'ShopsList' }"
+                class="block px-8 py-2 hover:bg-gray-600"
+              >Shops</router-link>
             </li>
           </ul>
         </li>
       </ul>
     </nav>
+
     <div class="px-4 py-4 border-t border-gray-700">
-      <button @click="logoutAndGoLogin" class="w-full text-left px-4 py-2 bg-red-600 hover:bg-red-500 rounded text-white">
+      <button
+        @click="logoutAndGoLogin"
+        class="w-full text-left px-4 py-2 bg-red-600 hover:bg-red-500 rounded text-white"
+      >
         Logout
       </button>
     </div>
@@ -48,66 +103,41 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 
-const router = useRouter();
-const route = useRoute();
-const { logout } = useAuth();
+const router        = useRouter();
+const route         = useRoute();
+const { logout }    = useAuth();
+const activeSection = ref('');
 
-const menuItems = [
-  { name: 'AdminDashboard', label: 'Dashboard', to: { name: 'AdminDashboard' } },
-  { name: 'CSRDashboard',   label: 'CSR',       to: { name: 'CSRDashboard' } },
-  {
-    name: 'Sales', label: 'Sales', children: [
-      { name: 'SalesDashboard',  label: 'Sales Dashboard', to: { name: 'SalesDashboard' } },
-      { name: 'SalesEntry',      label: 'New Entry',       to: { name: 'SalesEntry' } },
-      { name: 'BulkUpload',      label: 'Bulk Upload',     to: { name: 'BulkUpload' } },
-      { name: 'ProductList',     label: 'Catalogue',       to: { name: 'ProductList' } },
-      { name: 'CreateProduct',   label: 'New Product',     to: { name: 'CreateProduct' } },
-      { name: 'CategoryList',    label: 'Categories',      to: { name: 'CategoryList' } },
-      { name: 'CreateCategory',  label: 'New Category',    to: { name: 'CreateCategory' } }
-    ]
-  },
-  {
-    name: 'Rewards', label: 'Rewards', children: [
-      { name: 'RewardRedemption',       label: 'Redemption',         to: { name: 'RewardRedemption' } },
-      { name: 'RewardDashboard',        label: 'Dashboard',          to: { name: 'RewardDashboard' } },
-      { name: 'ManageRewardItems',      label: 'Manage Reward Items', to: { name: 'ManageRewardItems' } },
-      { name: 'ManageRewardCategories', label: 'Reward Categories',   to: { name: 'ManageRewardCategories' } }
-    ]
-  },
-  { name: 'ReportsView', label: 'Reports', to: { name: 'ReportsView' } },
-  {
-    name: 'Settings', label: 'Settings', children: [
-      { name: 'SettingsView', label: 'General Settings', to: { name: 'SettingsView' } },
-      { name: 'AuditLogs',    label: 'Audit Logs',       to: { name: 'AuditLogs' } },
-      { name: 'ManageUsers',  label: 'Manage Users',     to: { name: 'ManageUsers' } }
-    ]
+// map active route to section
+function setActive() {
+  const name = route.name;
+  if (
+    ['ManageRewardCategories','AddRewardCategory','ViewRewardCategory','EditRewardCategory',
+     'ManageRewardItems','AddRewardItem','ViewRewardItem','EditRewardItem']
+    .includes(name)
+  ) {
+    activeSection.value = 'Rewards';
+  } else if (
+    ['AuditLogs','ManageUsers','AddUser','EditUser','UserDetails',
+     'DealersList','AddDealer','EditDealer','DealerDetails',
+     'ShopsList','AddShop','EditShop','ShopDetails']
+    .includes(name)
+  ) {
+    activeSection.value = 'Settings';
+  } else {
+    activeSection.value = '';
   }
-];
-
-const activeSection = ref('AdminDashboard');
-
-function setActiveByRoute() {
-  menuItems.forEach(item => {
-    if (item.children) {
-      if (item.children.some(sub => route.name === sub.name)) {
-        activeSection.value = item.name;
-      }
-    } else if (route.name === item.name) {
-      activeSection.value = item.name;
-    }
-  });
 }
 
-setActiveByRoute();
-watch(() => route.name, setActiveByRoute);
+onMounted(setActive);
+watch(() => route.name, setActive);
 
-function selectMenu(item) {
-  activeSection.value = item.name;
-  if (item.to) router.push(item.to);
+function toggle(section) {
+  activeSection.value = activeSection.value === section ? '' : section;
 }
 
 function logoutAndGoLogin() {
@@ -117,5 +147,5 @@ function logoutAndGoLogin() {
 </script>
 
 <style scoped>
-/* util-class driven—no extra CSS needed */
+/* All styling via Tailwind */
 </style>

@@ -1,17 +1,15 @@
 <template>
-  <div class="p-4 max-w-4xl mx-auto mt-8">
-    <!-- Header with title and New Item button -->
+  <div class="max-w-4xl mx-auto p-4">
     <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-semibold">Manage Reward Items</h1>
+      <h1 class="text-2xl font-bold">Manage Reward Items</h1>
       <router-link
         :to="{ name: 'CreateRewardItem' }"
-        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500"
+        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
       >
-        New Item
+        New Reward Item
       </router-link>
     </div>
 
-    <!-- Table of items -->
     <div class="overflow-x-auto">
       <table class="min-w-full bg-white border-collapse border border-gray-200">
         <thead>
@@ -26,7 +24,11 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in items" :key="item.id" class="hover:bg-gray-50">
+          <tr
+            v-for="item in items"
+            :key="item.id"
+            class="hover:bg-gray-50"
+          >
             <td class="px-4 py-2 border border-gray-200">{{ item.name }}</td>
             <td class="px-4 py-2 border border-gray-200">{{ item.reward_category_name }}</td>
             <td class="px-4 py-2 border border-gray-200 text-right">{{ item.points_required }}</td>
@@ -56,7 +58,6 @@
       </table>
     </div>
 
-    <!-- Error message -->
     <div v-if="error" class="text-red-500 mt-4">{{ error }}</div>
   </div>
 </template>
@@ -64,13 +65,15 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getRewardItems, deleteRewardItem } from '@/services/rewardItems';
+import {
+  getRewardItems,
+  deleteRewardItem
+} from '@/services/rewardItems';
 
-const items = ref([]);
-const error = ref('');
-const router = useRouter();
+const items   = ref([]);
+const error   = ref('');
+const router  = useRouter();
 
-// Fetch list of reward items
 async function fetchItems() {
   try {
     const res = await getRewardItems();
@@ -80,10 +83,10 @@ async function fetchItems() {
   }
 }
 
-// Navigation handlers
 function edit(id) {
   router.push({ name: 'EditRewardItem', params: { id } });
 }
+
 function remove(id) {
   if (!confirm('Delete this reward item?')) return;
   deleteRewardItem(id).then(fetchItems);
@@ -91,7 +94,3 @@ function remove(id) {
 
 onMounted(fetchItems);
 </script>
-
-<style scoped>
-/* All styling via Tailwind utilities */
-</style>

@@ -1,126 +1,104 @@
 <template>
-    <div class="p-4">
-      <h1 class="text-2xl font-bold mb-4">Products</h1>
-  
-      <div class="mb-4 flex items-center gap-4">
-        <router-link to="/products/new" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            + Add Product
-        </router-link>
-
-        <label class="inline-flex items-center">
-            <input type="checkbox" v-model="showDeletedOnly" class="mr-2" />
-            Show Deleted Only
-        </label>
-      </div>
-
-  
-      <table class="w-full border-collapse border">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="p-2 border">Name</th>
-            <th class="p-2 border">Category</th>
-            <th class="p-2 border">Price</th>
-            <th class="p-2 border">Eligible</th>
-            <th class="p-2 border">Status</th>
-            <th class="p-2 border">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="product in visibleProducts" :key="product.id" class="hover:bg-gray-50">
-            <td class="p-2 border">{{ product.name }}</td>
-            <td class="p-2 border">{{ product.category_name }}</td>
-            <td class="p-2 border">₹{{ product.price }}</td>
-            <td class="p-2 border">{{ product.is_reward_eligible ? 'Yes' : 'No' }}</td>
-            <td class="p-2 border">{{ product.status }}</td>
-            <td class="p-2 border space-x-2">
-              <router-link :to="`/products/${product.id}/edit`" class="text-blue-600 underline">Edit</router-link>
-              <button
-                v-if="!product.deleted_at"
-                @click="softDelete(product.id)"
-                class="text-red-600 underline"
-              >
-                Delete
-              </button>
-              <button
-                v-else
-                @click="restore(product.id)"
-                class="text-green-600 underline"
-              >
-                Restore
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-semibold">Product Catalogue</h1>
+      <!-- “Add New Product” button on this page -->
+      <router-link
+        :to="{ name: 'CreateProduct' }"
+        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      >
+        + New Product
+      </router-link>
     </div>
-  </template>
-  
-  <script>
-  import axios from 'axios';
-  
-  const baseUrl = process.env.VUE_APP_API_BASE_URL; // ✅ Global for this component
-  
-  export default {
-    name: 'ProductListView',
-    data() {
-      return {
-        products: [],
-        showDeletedOnly: false, // ✅ Toggle
-      };
-    },
 
-    computed: {
-    visibleProducts() {
-        return this.showDeletedOnly
-        ? this.products.filter(p => p.deleted_at)
-        : this.products.filter(p => !p.deleted_at);
-    }
-    },
+    <table class="min-w-full bg-white border">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2 border">SKU</th>
+          <th class="px-4 py-2 border">Name</th>
+          <th class="px-4 py-2 border">Category</th>
+          <th class="px-4 py-2 border">Price</th>
+          <th class="px-4 py-2 border">Stock</th>
+          <th class="px-4 py-2 border">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="product in products" :key="product.id" class="hover:bg-gray-50">
+          <td class="px-4 py-2 border">{{ product.sku }}</td>
+          <td class="px-4 py-2 border">{{ product.name }}</td>
+          <td class="px-4 py-2 border">{{ categoryMap[product.category_id] || '-' }}</td>
+          <td class="px-4 py-2 border">₹{{ product.price.toFixed(2) }}</td>
+          <td class="px-4 py-2 border">{{ product.stock_quantity }}</td>
+          <td class="px-4 py-2 border">
+            <router-link
+              :to="{ name: 'EditProduct', params: { id: product.id } }"
+              class="text-indigo-600 hover:underline"
+            >
+              Edit
+            </router-link>
+          </td>
+        </tr>
+        <tr v-if="!products.length">
+          <td colspan="6" class="text-center py-4 text-gray-500">No products found.</td>
+        </tr>
+      </tbody>
+    </table>
 
-    async created() {
-      await this.fetchProducts();
-    },
-    methods: {
-      async fetchProducts() {
-        try {
-          const res = await axios.get(`${baseUrl}/products`, this.authHeader());
-          this.products = res.data;
-        } catch (err) {
-          console.error('Failed to fetch products:', err);
-        }
-      },
-      async softDelete(id) {
-        if (!confirm('Are you sure you want to delete this product?')) return;
-        try {
-          await axios.delete(`${baseUrl}/products/${id}`, this.authHeader());
-          await this.fetchProducts();
-        } catch (err) {
-          console.error('Delete failed:', err);
-        }
-      },
-      async restore(id) {
-        try {
-          await axios.patch(`${baseUrl}/products/${id}/restore`, {}, this.authHeader());
-          await this.fetchProducts();
-        } catch (err) {
-          console.error('Restore failed:', err);
-        }
-      },
-      authHeader() {
-        const token = localStorage.getItem('token');
-        return {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
-      },
-    },
-  };
-  </script>
-  
-  <style scoped>
-  th, td {
-    text-align: left;
+    <div v-if="error" class="mt-4 text-red-600">{{ error }}</div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import api from '@/services/api';
+
+const products = ref([]);
+const categories = ref([]);
+const error = ref('');
+
+// Fetch all categories for lookup map
+async function fetchCategories() {
+  try {
+    const { data } = await api.get('/categories');
+    categories.value = data;
+  } catch (e) {
+    console.error('Failed to load categories:', e);
   }
-  </style>
-  
+}
+
+// Build category_id → category name map
+const categoryMap = computed(() => {
+  const map = {};
+  categories.value.forEach((c) => {
+    map[c.id] = c.name;
+  });
+  return map;
+});
+
+// Fetch all products
+async function fetchProducts() {
+  error.value = '';
+  try {
+    const { data } = await api.get('/products');
+    products.value = data;
+  } catch (e) {
+    error.value = 'Failed to load products: ' + (e.response?.data?.message || e.message);
+    console.error(e);
+  }
+}
+
+onMounted(async () => {
+  await fetchCategories();
+  await fetchProducts();
+});
+</script>
+
+<style scoped>
+table {
+  border-collapse: collapse;
+}
+th,
+td {
+  text-align: left;
+}
+</style>

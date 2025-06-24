@@ -2,14 +2,16 @@
 import api from '@/services/api';
 
 /**
- * Fetch all reward items (active only).
+ * Fetch reward items, with optional filters.
+ * @param {Object} [params] – Query params, e.g. { status, reward_category_id, page, limit }
  */
-export function getRewardItems() {
-  return api.get('/reward-items');
+export function getRewardItems(params = {}) {
+  return api.get('/reward-items', { params });
 }
 
 /**
  * Fetch a single reward item by ID.
+ * @param {string|number} id
  */
 export function getRewardItem(id) {
   return api.get(`/reward-items/${id}`);
@@ -17,14 +19,23 @@ export function getRewardItem(id) {
 
 /**
  * Create a new reward item.
- * data shape: { name, reward_category_id, points_required, market_mrp, available_stock, status }
+ * @param {Object} data
+ * @param {string} data.name
+ * @param {number} data.reward_category_id
+ * @param {number} data.points_required
+ * @param {number} data.market_mrp
+ * @param {number} data.available_stock
+ * @param {string} data.status
+ * @param {string} [data.image_url]
  */
 export function createRewardItem(data) {
   return api.post('/reward-items', data);
 }
 
 /**
- * Update existing reward item.
+ * Update an existing reward item.
+ * @param {string|number} id
+ * @param {Object} data – Fields to update
  */
 export function updateRewardItem(id, data) {
   return api.put(`/reward-items/${id}`, data);
@@ -32,7 +43,16 @@ export function updateRewardItem(id, data) {
 
 /**
  * Delete a reward item.
+ * @param {string|number} id
  */
 export function deleteRewardItem(id) {
   return api.delete(`/reward-items/${id}`);
 }
+
+export default {
+  getRewardItems,
+  getRewardItem,
+  createRewardItem,
+  updateRewardItem,
+  deleteRewardItem,
+};

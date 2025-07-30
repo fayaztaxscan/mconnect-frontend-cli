@@ -1,8 +1,9 @@
 <!-- src/components/layout/SideMenu.vue -->
 <template>
   <aside class="w-64 bg-gray-800 text-gray-100 flex flex-col h-screen">
-    <div class="px-4 py-6 text-lg font-semibold border-b border-gray-700">
-      Admin Menu
+    <div class="px-4 py-6 border-b border-gray-700 flex items-center justify-between">
+      <span class="text-lg font-semibold">Admin Menu</span>
+      <NotificationDropdown />
     </div>
 
     <nav class="flex-1 overflow-y-auto">
@@ -29,6 +30,12 @@
           <ul v-if="activeSection === 'Rewards'" class="bg-gray-700">
             <li>
               <router-link
+                :to="{ name: 'FulfillClaims' }"
+                class="block px-8 py-2 hover:bg-gray-600"
+              >Fulfill Claims</router-link>
+            </li>
+            <li>
+              <router-link
                 :to="{ name: 'ManageRewardCategories' }"
                 class="block px-8 py-2 hover:bg-gray-600"
               >Categories</router-link>
@@ -40,6 +47,7 @@
               >Items</router-link>
             </li>
           </ul>
+
         </li>
 
         <!-- Settings (without "General") -->
@@ -62,6 +70,13 @@
             </svg>
           </div>
           <ul v-if="activeSection === 'Settings'" class="bg-gray-700">
+            <li>
+              <router-link
+                :to="{ name: 'NotificationsView' }"
+                class="block px-8 py-2 hover:bg-gray-600"
+              >Notifications</router-link>
+            </li>
+
             <li>
               <router-link
                 :to="{ name: 'AuditLogs' }"
@@ -106,6 +121,8 @@
 import { ref, watch, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
+import NotificationDropdown from '@/components/layout/NotificationDropdown.vue';
+
 
 const router        = useRouter();
 const route         = useRoute();
@@ -116,13 +133,13 @@ const activeSection = ref('');
 function setActive() {
   const name = route.name;
   if (
-    ['ManageRewardCategories','AddRewardCategory','ViewRewardCategory','EditRewardCategory',
+    ['FulfillClaims','ManageRewardCategories','AddRewardCategory','ViewRewardCategory','EditRewardCategory',
      'ManageRewardItems','AddRewardItem','ViewRewardItem','EditRewardItem']
     .includes(name)
   ) {
     activeSection.value = 'Rewards';
   } else if (
-    ['AuditLogs','ManageUsers','AddUser','EditUser','UserDetails',
+    ['NotificationsView','AuditLogs','ManageUsers','AddUser','EditUser','UserDetails',
      'DealersList','AddDealer','EditDealer','DealerDetails',
      'ShopsList','AddShop','EditShop','ShopDetails']
     .includes(name)

@@ -1,5 +1,3 @@
-// src/router/index.js
-
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuth } from '@/composables/useAuth';
 
@@ -35,6 +33,9 @@ import CreateRewardItem   from '@/views/rewards/CreateRewardItem.vue';
 import ViewRewardItem     from '@/views/rewards/ViewRewardItem.vue';
 import EditRewardItem     from '@/views/rewards/EditRewardItem.vue';
 
+// Fulfillment Panel
+import FulfillClaims from '@/views/rewards/FulfillClaims.vue';
+
 // Dealer Management (under Settings)
 import DealersList   from '@/views/settings/Dealers/DealersList.vue';
 import DealerForm    from '@/views/settings/Dealers/DealersForm.vue';
@@ -66,16 +67,28 @@ const routes = [
       { path: '', redirect: { name: 'AdminDashboard' } },
 
       // Dashboards
-      { path: 'admin',   name: 'AdminDashboard', component: AdminDashboard },
-      { path: 'csr',     name: 'CSRDashboard',   component: CSRDashboard },
+      {
+        path: 'admin',
+        children: [
+          { path: '', name: 'AdminDashboard', component: AdminDashboard },
+          {
+            path: 'notifications',
+            name: 'NotificationsView',
+            component: () => import('@/views/admin/NotificationsView.vue')
+          }
+        ]
+      },
+      { path: 'csr', name: 'CSRDashboard', component: CSRDashboard },
+
       {
         path: 'sales',
         children: [
           { path: '',       name: 'SalesDashboard', component: SalesDashboard },
-          { path: 'entry',  name: 'SalesEntry',      component: SalesForm     },
-          { path: 'upload', name: 'BulkUpload',      component: UploadWizard }
+          { path: 'entry',  name: 'SalesEntry',     component: SalesForm     },
+          { path: 'upload', name: 'BulkUpload',     component: UploadWizard  }
         ]
       },
+
       { path: 'reports', name: 'ReportsView', component: ReportsView },
 
       // Users
@@ -93,24 +106,24 @@ const routes = [
       {
         path: 'rewards',
         children: [
-          // Categories
+          { path: 'fulfillments', name: 'FulfillClaims', component: FulfillClaims },
+
           {
             path: 'categories',
             children: [
-              { path: '',        name: 'ManageRewardCategories', component: RewardCategoriesList  },
-              { path: 'add',     name: 'AddRewardCategory',      component: CreateRewardCategory  },
-              { path: ':id',     name: 'ViewRewardCategory',     component: RewardCategoryDetails, props: true },
-              { path: ':id/edit',name: 'EditRewardCategory',     component: EditRewardCategory,    props: true }
+              { path: '',         name: 'ManageRewardCategories', component: RewardCategoriesList  },
+              { path: 'add',      name: 'AddRewardCategory',      component: CreateRewardCategory  },
+              { path: ':id',      name: 'ViewRewardCategory',     component: RewardCategoryDetails, props: true },
+              { path: ':id/edit', name: 'EditRewardCategory',     component: EditRewardCategory,    props: true }
             ]
           },
-          // Items
           {
             path: 'items',
             children: [
-              { path: '',        name: 'ManageRewardItems',  component: RewardItemsList    },
-              { path: 'add',     name: 'CreateRewardItem',   component: CreateRewardItem   },
-              { path: ':id',     name: 'ViewRewardItem',     component: ViewRewardItem,    props: true },
-              { path: ':id/edit',name: 'EditRewardItem',     component: EditRewardItem,    props: true }
+              { path: '',         name: 'ManageRewardItems', component: RewardItemsList   },
+              { path: 'add',      name: 'CreateRewardItem',  component: CreateRewardItem  },
+              { path: ':id',      name: 'ViewRewardItem',    component: ViewRewardItem,   props: true },
+              { path: ':id/edit', name: 'EditRewardItem',    component: EditRewardItem,   props: true }
             ]
           }
         ]
@@ -123,7 +136,6 @@ const routes = [
           { path: '',           name: 'SettingsView', component: SettingsView },
           { path: 'audit-logs', name: 'AuditLogs',    component: AuditViewer },
 
-          // Dealers
           {
             path: 'dealers',
             children: [
@@ -134,7 +146,6 @@ const routes = [
             ]
           },
 
-          // Shops
           {
             path: 'shops',
             children: [
@@ -158,7 +169,6 @@ const router = createRouter({
   routes
 });
 
-// Global auth guard
 router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     return next({ name: 'Login' });

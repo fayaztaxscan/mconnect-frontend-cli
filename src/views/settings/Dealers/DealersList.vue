@@ -11,19 +11,32 @@
       </router-link>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="min-w-full bg-white border-collapse">
+    <div class="overflow-x-auto bg-white border rounded">
+      <table class="min-w-full border-collapse">
         <thead>
           <tr class="bg-gray-100">
-            <th class="px-4 py-2 border">Code</th>
-            <th class="px-4 py-2 border">Name</th>
-            <th class="px-4 py-2 border">Region</th>
-            <th class="px-4 py-2 border">Status</th>
-            <th class="px-4 py-2 border">Actions</th>
+            <th class="px-4 py-2 border text-left">Code</th>
+            <th class="px-4 py-2 border text-left">Name</th>
+            <th class="px-4 py-2 border text-left">Region</th>
+            <th class="px-4 py-2 border text-left">Status</th>
+            <th class="px-4 py-2 border text-left">Actions</th>
           </tr>
         </thead>
         <tbody>
+          <tr v-if="loading">
+            <td colspan="5" class="px-4 py-6 text-center text-gray-500">Loading…</td>
+          </tr>
+
+          <tr v-else-if="error">
+            <td colspan="5" class="px-4 py-6 text-center text-red-600">{{ error }}</td>
+          </tr>
+
+          <tr v-else-if="dealers.length === 0">
+            <td colspan="5" class="px-4 py-6 text-center text-gray-500">No dealers found</td>
+          </tr>
+
           <tr
+            v-else
             v-for="dealer in dealers"
             :key="dealer.id"
             class="hover:bg-gray-50"
@@ -31,8 +44,8 @@
             <td class="px-4 py-2 border">{{ dealer.dealer_code }}</td>
             <td class="px-4 py-2 border">{{ dealer.name }}</td>
             <td class="px-4 py-2 border">{{ dealer.region_id }}</td>
-            <td class="px-4 py-2 border">{{ dealer.status }}</td>
-            <td class="px-4 py-2 border space-x-2">
+            <td class="px-4 py-2 border capitalize">{{ dealer.status }}</td>
+            <td class="px-4 py-2 border space-x-3">
               <router-link
                 :to="{ name: 'DealerDetails', params: { id: dealer.id } }"
                 class="text-blue-600 hover:underline"
@@ -42,7 +55,7 @@
                 class="text-green-600 hover:underline"
               >Edit</router-link>
               <button
-                @click="deleteDealer(dealer.id)"
+                @click="onDelete(dealer.id)"
                 class="text-red-600 hover:underline"
               >Delete</button>
             </td>
@@ -50,14 +63,11 @@
         </tbody>
       </table>
     </div>
-
-    <div v-if="loading" class="mt-4 text-center">Loading...</div>
-    <div v-if="error" class="mt-4 text-red-500">{{ error }}</div>
   </div>
 </template>
 
 <script>
-import api from '@/services/api';
+import { listDealers, deleteDealer } from '@/services/dealers' // <-- uses baseURL '/api'
 
 export default {
   name: 'DealersList',
@@ -66,35 +76,34 @@ export default {
       dealers: [],
       loading: false,
       error: ''
-    };
+    }
   },
   methods: {
     async fetchDealers() {
-      this.loading = true;
-      this.error   = '';
+      this.loading = true
+      this.error = ''
       try {
-        const { data } = await api.get('/api/dealers');
-        this.dealers = data;
+        this.dealers = await listDealers()   // <-- calls GET '/dealers'
       } catch (err) {
-        this.error = err.response?.data?.error || 'Failed to load dealers.';
+        this.error = err?.response?.data?.error || 'Failed to load dealers.'
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
-    async deleteDealer(id) {
-      if (!confirm('Delete this dealer?')) return;
+    async onDelete(id) {
+      if (!confirm('Delete this dealer?')) return
       try {
-        await api.delete(`/api/dealers/${id}`);
-        this.fetchDealers();
+        await deleteDealer(id)               // <-- calls DELETE '/dealers/:id'
+        this.fetchDealers()
       } catch (err) {
-        alert(err.response?.data?.error || 'Failed to delete.');
+        alert(err?.response?.data?.error || 'Failed to delete.')
       }
     }
   },
   created() {
-    this.fetchDealers();
+    this.fetchDealers()
   }
-};
+}
 </script>
 
 <style scoped>

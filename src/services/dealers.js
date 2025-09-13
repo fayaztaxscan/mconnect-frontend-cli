@@ -1,17 +1,12 @@
 // src/services/dealers.js
-import api from '@/services/api' // your axios instance (or replace with axios)
+import api from '@/services/api'
 
-export async function getDealer(id) {
-  const { data } = await api.get(`/api/dealers/${id}`)
-  return data
+export async function listDealers(params = {}) {
+  const { data } = await api.get('/dealers', { params })   // ← no /api
+  return Array.isArray(data) ? data : (data.items ?? [])
 }
 
-export async function createDealer(payload) {
-  const { data } = await api.post('/api/dealers', payload)
-  return data
-}
-
-export async function updateDealer(id, payload) {
-  const { data } = await api.put(`/api/dealers/${id}`, payload)
-  return data
-}
+export async function getDealer(id)    { return (await api.get(`/dealers/${id}`)).data }
+export async function createDealer(p)  { return (await api.post('/dealers', p)).data }
+export async function updateDealer(id,p){return (await api.put(`/dealers/${id}`, p)).data }
+export async function deleteDealer(id) { return (await api.delete(`/dealers/${id}`)).data }

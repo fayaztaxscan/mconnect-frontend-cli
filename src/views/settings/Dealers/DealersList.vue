@@ -73,7 +73,7 @@ export default {
       this.loading = true;
       this.error   = '';
       try {
-        const { data } = await api.get('/dealers');
+        const { data } = await api.get('/api/dealers');
         this.dealers = data;
       } catch (err) {
         this.error = err.response?.data?.error || 'Failed to load dealers.';
@@ -84,7 +84,7 @@ export default {
     async deleteDealer(id) {
       if (!confirm('Delete this dealer?')) return;
       try {
-        await api.delete(`/dealers/${id}`);
+        await api.delete(`/api/dealers/${id}`);
         this.fetchDealers();
       } catch (err) {
         alert(err.response?.data?.error || 'Failed to delete.');

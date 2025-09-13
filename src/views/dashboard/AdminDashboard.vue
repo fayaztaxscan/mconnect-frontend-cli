@@ -1,8 +1,9 @@
 <!-- src/views/dashboard/AdminDashboard.vue -->
 <template>
-  <div class="max-w-4xl mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="min-h-screen bg-slate-50">
+    <div class="max-w-4xl mx-auto p-4">
+      <h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <router-link
         :to="{ name: 'ManageUsers' }"
         class="block bg-white p-6 border border-gray-200 rounded shadow hover:shadow-lg"
@@ -34,14 +35,15 @@
         <h2 class="text-xl font-semibold mb-2">Reports</h2>
         <p class="text-gray-600">View system reports.</p>
       </router-link>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-// no script logic needed here
+import logo from '@/assets/mconnect_logo.png'
 </script>
 
 <style scoped>
-/* purely Tailwind styling */
+/* Tailwind handles styling */
 </style>

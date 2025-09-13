@@ -1,34 +1,35 @@
+// src/composables/useAuth.js
 import { ref, computed } from 'vue';
+import { login as apiLogin, me as apiMe, logout as apiLogout } from '@/services/auth';
 
-const token = ref(localStorage.getItem('token') || '');
+const currentUser = ref(null);
+const isLoggedIn  = computed(() => !!localStorage.getItem('token'));
 
-function parsePayload(t) {
+async function hydrate() {
+  if (!localStorage.getItem('token')) {
+    currentUser.value = null;
+    return;
+  }
   try {
-    return JSON.parse(atob(t.split('.')[1]));
-  } catch {
-    return {};
+    currentUser.value = await apiMe();
+  } catch (e) {
+    // token invalid/expired
+    localStorage.removeItem('token');
+    currentUser.value = null;
   }
 }
 
+async function login(email, password) {
+  const { user } = await apiLogin(email, password);
+  currentUser.value = user;
+  return user;
+}
+
+function logout() {
+  apiLogout();
+  currentUser.value = null;
+}
+
 export function useAuth() {
-  const login = newToken => {
-    token.value = newToken;
-    localStorage.setItem('token', newToken);
-  };
-  const logout = () => {
-    token.value = '';
-    localStorage.removeItem('token');
-  };
-
-  const isLoggedIn = computed(() => Boolean(token.value));
-  const userRole   = computed(() => {
-    if (!token.value) return null;
-    return parsePayload(token.value).role || null;
-  });
-  const isAdmin    = computed(() => {
-    const r = userRole.value?.toLowerCase().replace(/\s+/g, '');
-    return r === 'admin' || r === 'superadmin';
-  });
-
-  return { token, isLoggedIn, userRole, isAdmin, login, logout };
+  return { currentUser, isLoggedIn, hydrate, login, logout };
 }

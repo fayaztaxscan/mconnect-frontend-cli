@@ -38,8 +38,12 @@ import FulfillClaims from '@/views/rewards/FulfillClaims.vue';
 
 // Dealer Management (under Settings)
 import DealersList   from '@/views/settings/Dealers/DealersList.vue';
-import DealerForm    from '@/views/settings/Dealers/DealersForm.vue';
+import DealersForm   from '@/views/settings/Dealers/DealersForm.vue'; // ← plural form (matches your tree)
 import DealerDetails from '@/views/settings/Dealers/DealerDetails.vue';
+
+// Catalog — Brands (lazy)
+const BrandsList = () => import('@/views/catalog/BrandsList.vue');
+const BrandForm  = () => import('@/views/catalog/BrandForm.vue');
 
 // Shop Management (under Settings)
 const ShopsList   = () => import('@/views/settings/Shops/ShopList.vue');
@@ -54,7 +58,7 @@ const { isLoggedIn } = useAuth();
 
 const routes = [
   // Public
-  { path: '/',     redirect: '/login' },
+  { path: '/', redirect: '/login' },
   { path: '/login', name: 'Login', component: LoginView },
 
   // Protected (requiresAuth)
@@ -90,6 +94,16 @@ const routes = [
       },
 
       { path: 'reports', name: 'ReportsView', component: ReportsView },
+
+      // ⬇️ TOP-LEVEL BRANDS (moved out of /catalog)
+      {
+        path: 'brands',
+        children: [
+          { path: '',    name: 'BrandsList',  component: BrandsList },
+          { path: 'new', name: 'BrandCreate', component: BrandForm  },
+          { path: ':id', name: 'BrandEdit',   component: BrandForm, props: true }
+        ]
+      },
 
       // Users
       {
@@ -140,9 +154,9 @@ const routes = [
             path: 'dealers',
             children: [
               { path: '',         name: 'DealersList',   component: DealersList   },
-              { path: 'add',      name: 'AddDealer',     component: DealerForm    },
-              { path: ':id/edit', name: 'EditDealer',    component: DealerForm,   props: true },
-              { path: ':id',      name: 'DealerDetails', component: DealerDetails,props: true }
+              { path: 'add',      name: 'AddDealer',     component: DealersForm   },
+              { path: ':id/edit', name: 'EditDealer',    component: DealersForm,  props: true },
+              { path: ':id',      name: 'DealerDetails', component: DealerDetails, props: true }
             ]
           },
 
@@ -165,11 +179,12 @@ const routes = [
 ];
 
 const router = createRouter({
+  // If you’re on Vite, replace process.env.BASE_URL with import.meta.env.BASE_URL
   history: createWebHistory(process.env.BASE_URL),
   routes
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     return next({ name: 'Login' });
   }

@@ -4,7 +4,7 @@
       <!-- App brand -->
       <div class="flex flex-col items-center space-y-2 -mt-1 mb-1">
         <img :src="logo" alt="MConnect" class="h-20 sm:h-24 w-auto" />
-        <h1 class="text-lg sm:text-xl font-semibold text-gray-900">MConnect</h1>
+        <!-- <h1 class="text-lg sm:text-xl font-semibold text-gray-900">MKonnect</h1> -->
         <p class="text-xs text-gray-500">Sign in to continue</p>
       </div>
 

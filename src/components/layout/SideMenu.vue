@@ -1,8 +1,7 @@
 <!-- src/components/layout/SideMenu.vue -->
 <template>
-  <!-- Light, pleasant sidebar -->
   <aside class="w-64 bg-white text-slate-800 flex flex-col h-screen border-r border-slate-200">
-    <!-- Header: larger logo at left, bell at right -->
+    <!-- Header -->
     <div class="px-4 py-4 border-b border-slate-200 flex items-center justify-between">
       <router-link to="/" class="flex items-center gap-3">
         <img :src="logo" alt="MConnect" class="h-12 w-auto sm:h-14" />
@@ -26,15 +25,9 @@
             </svg>
           </div>
           <ul v-if="activeSection === 'Rewards'" class="bg-slate-50 border-t border-slate-200">
-            <li>
-              <router-link :to="{ name: 'FulfillClaims' }" class="block px-8 py-2 hover:bg-slate-100">Fulfill Claims</router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'ManageRewardCategories' }" class="block px-8 py-2 hover:bg-slate-100">Categories</router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'ManageRewardItems' }" class="block px-8 py-2 hover:bg-slate-100">Items</router-link>
-            </li>
+            <li><router-link :to="{ name: 'FulfillClaims' }" class="block px-8 py-2 hover:bg-slate-100">Fulfill Claims</router-link></li>
+            <li><router-link :to="{ name: 'ManageRewardCategories' }" class="block px-8 py-2 hover:bg-slate-100">Categories</router-link></li>
+            <li><router-link :to="{ name: 'ManageRewardItems' }" class="block px-8 py-2 hover:bg-slate-100">Items</router-link></li>
           </ul>
         </li>
 
@@ -52,7 +45,49 @@
           </router-link>
         </li>
 
-        <!-- Settings -->
+        <!-- Top-level: Divisions -->
+        <li class="mb-1">
+          <router-link
+            :to="{ name: 'DivisionsList' }"
+            class="flex items-center justify-between px-4 py-3 rounded-md hover:bg-slate-100"
+            :class="{ 'bg-indigo-50 text-indigo-700 font-medium': isDivisionActive }"
+          >
+            <span class="font-medium">Divisions</span>
+            <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </router-link>
+        </li>
+
+        <!-- ✅ Top-level: Categories (Catalog) -->
+        <li class="mb-1">
+          <router-link
+            :to="{ name: 'CategoriesList' }"
+            class="flex items-center justify-between px-4 py-3 rounded-md hover:bg-slate-100"
+            :class="{ 'bg-indigo-50 text-indigo-700 font-medium': isCategoryActive }"
+          >
+            <span class="font-medium">Categories</span>
+            <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </router-link>
+        </li>
+
+        <!-- ✅ Top-level: Dealers (moved out of Settings) -->
+        <li class="mb-1">
+          <router-link
+            :to="{ name: 'DealersList' }"
+            class="flex items-center justify-between px-4 py-3 rounded-md hover:bg-slate-100"
+            :class="{ 'bg-indigo-50 text-indigo-700 font-medium': isDealerActive }"
+          >
+            <span class="font-medium">Dealers</span>
+            <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </router-link>
+        </li>
+
+        <!-- Settings (without Dealers now) -->
         <li class="mb-1">
           <div
             @click="toggle('Settings')"
@@ -68,13 +103,13 @@
             <li><router-link :to="{ name: 'NotificationsView' }" class="block px-8 py-2 hover:bg-slate-100">Notifications</router-link></li>
             <li><router-link :to="{ name: 'AuditLogs' }" class="block px-8 py-2 hover:bg-slate-100">Audit Logs</router-link></li>
             <li><router-link :to="{ name: 'ManageUsers' }" class="block px-8 py-2 hover:bg-slate-100">Users</router-link></li>
-            <li><router-link :to="{ name: 'DealersList' }" class="block px-8 py-2 hover:bg-slate-100">Dealers</router-link></li>
             <li><router-link :to="{ name: 'ShopsList' }" class="block px-8 py-2 hover:bg-slate-100">Shops</router-link></li>
           </ul>
         </li>
       </ul>
     </nav>
 
+    <!-- Footer -->
     <div class="px-4 py-4 border-t border-slate-200 bg-white">
       <button @click="logoutAndGoLogin" class="w-full text-left px-4 py-2 bg-red-600 hover:bg-red-500 rounded text-white">
         Logout
@@ -95,20 +130,26 @@ const route         = useRoute()
 const { logout }    = useAuth()
 const activeSection = ref('')
 
-// brand active state (top-level)
-const brandRouteNames = ['BrandsList', 'BrandCreate', 'BrandEdit']
-const isBrandActive = computed(() => brandRouteNames.includes(route.name))
+// Active states
+const brandRouteNames     = ['BrandsList', 'BrandCreate', 'BrandEdit']
+const divisionRouteNames  = ['DivisionsList', 'DivisionCreate', 'DivisionEdit']
+const categoryRouteNames  = ['CategoriesList', 'CategoryCreate', 'CategoryEdit']
+const dealerRouteNames    = ['DealersList', 'AddDealer', 'EditDealer', 'DealerDetails']
+
+const isBrandActive    = computed(() => brandRouteNames.includes(route.name))
+const isDivisionActive = computed(() => divisionRouteNames.includes(route.name))
+const isCategoryActive = computed(() => categoryRouteNames.includes(route.name))
+const isDealerActive   = computed(() => dealerRouteNames.includes(route.name))
 
 function setActive() {
   const name = route.name
   if (
     ['FulfillClaims','ManageRewardCategories','AddRewardCategory','ViewRewardCategory','EditRewardCategory',
-     'ManageRewardItems','AddRewardItem','ViewRewardItem','EditRewardItem'].includes(name)
+     'ManageRewardItems','CreateRewardItem','ViewRewardItem','EditRewardItem'].includes(name)
   ) {
     activeSection.value = 'Rewards'
   } else if (
     ['NotificationsView','AuditLogs','ManageUsers','AddUser','EditUser','UserDetails',
-     'DealersList','AddDealer','EditDealer','DealerDetails',
      'ShopsList','AddShop','EditShop','ShopDetails'].includes(name)
   ) {
     activeSection.value = 'Settings'
@@ -127,7 +168,3 @@ function logoutAndGoLogin() {
   router.push({ name: 'Login' })
 }
 </script>
-
-<style scoped>
-/* Styling handled via Tailwind */
-</style>

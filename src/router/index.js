@@ -1,4 +1,4 @@
-// src/router/index.ts (or index.js)
+// src/router/index.js (or index.ts)
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
@@ -51,7 +51,7 @@ const ShopsList   = () => import('@/views/settings/Shops/ShopList.vue')
 const ShopForm    = () => import('@/views/settings/Shops/ShopForm.vue')
 const ShopDetails = () => import('@/views/settings/Shops/ShopDetails.vue')
 
-// Catalog — Divisions (NEW, top-level lazy)
+// Catalog — Divisions (lazy)
 const DivisionsList = () => import('@/views/catalog/divisions/DivisionsList.vue')
 const DivisionForm  = () => import('@/views/catalog/divisions/DivisionForm.vue')
 
@@ -59,7 +59,9 @@ const DivisionForm  = () => import('@/views/catalog/divisions/DivisionForm.vue')
 const CategoriesList = () => import('@/views/catalog/categories/CategoriesPage.vue')
 const CategoryForm   = () => import('@/views/catalog/categories/CategoryForm.vue')
 
-
+// Catalog — Products (lazy)
+const ProductListView = () => import('@/views/products/ProductListView.vue')
+const ProductFormView = () => import('@/views/products/ProductFormView.vue')
 
 const routes = [
   // Public
@@ -101,7 +103,7 @@ const routes = [
       { path: 'reports', name: 'ReportsView', component: ReportsView },
 
       // ───────────────────────────────────────────────────────────
-      // CATALOG: BRANDS (top-level)
+      // CATALOG: BRANDS
       // ───────────────────────────────────────────────────────────
       {
         path: 'brands',
@@ -113,8 +115,7 @@ const routes = [
       },
 
       // ───────────────────────────────────────────────────────────
-      // CATALOG: DIVISIONS (NEW top-level, NOT nested under brand)
-      // Use these for the sidebar submenu “Divisions”
+      // CATALOG: DIVISIONS
       // ───────────────────────────────────────────────────────────
       {
         path: 'divisions',
@@ -126,7 +127,7 @@ const routes = [
       },
 
       // ───────────────────────────────────────────────────────────
-      // CATALOG: CATEGORIES (top-level, not nested under divisions)
+      // CATALOG: CATEGORIES
       // ───────────────────────────────────────────────────────────
       {
         path: 'categories',
@@ -137,8 +138,20 @@ const routes = [
         ]
       },
 
-            // ───────────────────────────────────────────────────────────
-      // DEALERS (top-level, not under settings)
+      // ───────────────────────────────────────────────────────────
+      // CATALOG: PRODUCTS  ✅ (adds ProductList/Create/Edit)
+      // ───────────────────────────────────────────────────────────
+      {
+        path: 'products',
+        children: [
+          { path: '',         name: 'ProductList',  component: ProductListView },
+          { path: 'new',      name: 'CreateProduct', component: ProductFormView },
+          { path: ':id/edit', name: 'EditProduct',   component: ProductFormView, props: true },
+        ]
+      },
+
+      // ───────────────────────────────────────────────────────────
+      // DEALERS (top-level)
       // ───────────────────────────────────────────────────────────
       {
         path: 'dealers',
@@ -149,7 +162,6 @@ const routes = [
           { path: ':id',      name: 'DealerDetails', component: DealerDetails, props: true }
         ]
       },
-
 
       // Users
       {
@@ -167,7 +179,6 @@ const routes = [
         path: 'rewards',
         children: [
           { path: 'fulfillments', name: 'FulfillClaims', component: FulfillClaims },
-
           {
             path: 'categories',
             children: [
@@ -195,8 +206,6 @@ const routes = [
         children: [
           { path: '',           name: 'SettingsView', component: () => import('@/views/settings/SettingsView.vue') },
           { path: 'audit-logs', name: 'AuditLogs',    component: () => import('@/views/settings/AuditViewer.vue')  },
-
-
 
           // Shops
           {

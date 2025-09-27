@@ -59,7 +59,7 @@
           </router-link>
         </li>
 
-        <!-- ✅ Top-level: Categories (Catalog) -->
+        <!-- Top-level: Categories -->
         <li class="mb-1">
           <router-link
             :to="{ name: 'CategoriesList' }"
@@ -73,7 +73,21 @@
           </router-link>
         </li>
 
-        <!-- ✅ Top-level: Dealers (moved out of Settings) -->
+        <!-- ✅ Top-level: Products -->
+        <li class="mb-1">
+          <router-link
+            :to="{ name: 'ProductList' }"
+            class="flex items-center justify-between px-4 py-3 rounded-md hover:bg-slate-100"
+            :class="{ 'bg-indigo-50 text-indigo-700 font-medium': isProductActive }"
+          >
+            <span class="font-medium">Products</span>
+            <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </router-link>
+        </li>
+
+        <!-- Top-level: Dealers -->
         <li class="mb-1">
           <router-link
             :to="{ name: 'DealersList' }"
@@ -87,7 +101,7 @@
           </router-link>
         </li>
 
-        <!-- Settings (without Dealers now) -->
+        <!-- Settings -->
         <li class="mb-1">
           <div
             @click="toggle('Settings')"
@@ -134,11 +148,13 @@ const activeSection = ref('')
 const brandRouteNames     = ['BrandsList', 'BrandCreate', 'BrandEdit']
 const divisionRouteNames  = ['DivisionsList', 'DivisionCreate', 'DivisionEdit']
 const categoryRouteNames  = ['CategoriesList', 'CategoryCreate', 'CategoryEdit']
+const productRouteNames   = ['ProductList', 'CreateProduct', 'EditProduct']
 const dealerRouteNames    = ['DealersList', 'AddDealer', 'EditDealer', 'DealerDetails']
 
 const isBrandActive    = computed(() => brandRouteNames.includes(route.name))
 const isDivisionActive = computed(() => divisionRouteNames.includes(route.name))
 const isCategoryActive = computed(() => categoryRouteNames.includes(route.name))
+const isProductActive  = computed(() => productRouteNames.includes(route.name))
 const isDealerActive   = computed(() => dealerRouteNames.includes(route.name))
 
 function setActive() {

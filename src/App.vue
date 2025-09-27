@@ -1,29 +1,15 @@
 <template>
   <div id="app">
-    <!-- Primary layout container -->
     <router-view />
+    <ToastHost />
   </div>
 </template>
 
 <script>
+import ToastHost from '@/components/ui/ToastHost.vue'
+
 export default {
   name: 'App',
-};
+  components: { ToastHost }
+}
 </script>
-
-/* vue.config.js */
-const path = require('path');
-
-module.exports = {
-  transpileDependencies: true,
-  devServer: {
-    port: 8080,
-  },
-  configureWebpack: {
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, 'src')
-      }
-    }
-  }
-};

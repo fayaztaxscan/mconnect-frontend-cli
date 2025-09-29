@@ -5,6 +5,13 @@ import api from '@/services/api'
 const IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const DEFAULT_MAX_BYTES = 2 * 1024 * 1024 // 2 MB (matches server limit)
 
+const ASSET_BASE = (process.env.ASSET_BASE_URL || '').replace(/\/$/, ''); // http://localhost:3000
+
+function publicUrl(rel) {
+  const p = rel.startsWith('/uploads/') ? rel : '/uploads/' + rel.replace(/^\/+/, '');
+  return ASSET_BASE ? ASSET_BASE + p : p;
+}
+
 function assertFile(file, { maxBytes = DEFAULT_MAX_BYTES, mimes = IMAGE_MIMES } = {}) {
   if (!(file instanceof File)) throw new Error('No file selected')
   if (file.size > maxBytes) throw new Error(`File too large. Max ${(maxBytes / (1024 * 1024)).toFixed(1)} MB`)

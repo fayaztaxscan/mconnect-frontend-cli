@@ -62,6 +62,7 @@ const CategoryForm   = () => import('@/views/catalog/categories/CategoryForm.vue
 // Catalog — Products (lazy)
 const ProductListView = () => import('@/views/products/ProductListView.vue')
 const ProductFormView = () => import('@/views/products/ProductFormView.vue')
+const ProductDetails =() => import('@/views/products/ProductDetails.vue')
 
 const routes = [
   // Public
@@ -147,6 +148,12 @@ const routes = [
           { path: '',         name: 'ProductList',  component: ProductListView },
           { path: 'new',      name: 'CreateProduct', component: ProductFormView },
           { path: ':id/edit', name: 'EditProduct',   component: ProductFormView, props: true },
+          {
+            path: '/products/:id',
+            name: 'ProductDetails',
+            component: ProductDetails,
+            meta: { requiresAuth: true }
+          },
         ]
       },
 

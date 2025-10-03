@@ -26,6 +26,16 @@
                class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
       </div>
 
+      <!-- NEW: Model -->
+      <div>
+        <label for="model" class="block text-sm font-medium text-gray-700">
+          Model <span class="text-gray-400 text-xs">(optional)</span>
+        </label>
+        <input id="model" v-model.trim="form.model" type="text" maxlength="100"
+               placeholder="e.g., ZX-100, 15s-eq2144AU"
+               class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+      </div>
+
       <!-- Brand & Division (filters only for choosing category) -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -183,7 +193,8 @@ const previewUrl = ref('')      // ObjectURL or absolute link
 
 // --- form (DB columns) ---
 const form = reactive({
-  sku: '', name: '', category_id: null, unit: '',
+  sku: '', name: '', model: '',           // <-- NEW model
+  category_id: null, unit: '',
   price: 0, sale_price: null,
   reward_points: 0, is_reward_eligible: true,
   material: '', finish: '',
@@ -249,6 +260,7 @@ async function loadProduct(id) {
 
     form.sku = p.sku || ''
     form.name = p.name || ''
+    form.model = p.model || ''            // <-- NEW
     form.category_id = Number(p.category_id)
     form.unit = p.unit || ''
     form.price = Number(p.price || 0)
@@ -258,14 +270,14 @@ async function loadProduct(id) {
     form.material = p.material || ''
     form.finish = p.finish || ''
     form.image_url = p.image_url_resolved || p.image_url || ''
-    previewUrl.value = '' // we only show selected file preview; saved image shown via form.image_url
+    previewUrl.value = '' // only show selected file preview; saved image via form.image_url
     form.active = p.active ? 1 : 0
 
     // ensure lists are ready
     if (!brands.value.length) await fetchBrands()
     if (!allCategories.value.length) await fetchCategories('')
 
-    // set brand/division DIRECTLY from product response (your API returns these)
+    // set brand/division DIRECTLY from product response (API returns these)
     const brandId    = p.brand_id    != null ? Number(p.brand_id)    : null
     const divisionId = p.division_id != null ? Number(p.division_id) : null
     selection.brand_id = brandId
@@ -306,6 +318,7 @@ async function onSubmit() {
   const fd = new FormData()
   fd.append('sku', form.sku.trim())
   fd.append('name', form.name.trim())
+  fd.append('model', form.model || '')                 // <-- NEW
   fd.append('category_id', String(form.category_id))
   fd.append('unit', form.unit || '')
   fd.append('price', String(form.price ?? 0))
@@ -318,7 +331,7 @@ async function onSubmit() {
   fd.append('active', form.active === 1 ? '1' : '0')
 
   if (fileBlob.value) {
-    fd.append('image', fileBlob.value) // <---- matches backend multer.single('image')
+    fd.append('image', fileBlob.value) // matches backend multer.single('image')
   }
 
   saving.value = true
@@ -333,10 +346,10 @@ async function onSubmit() {
       const created = resp.data?.data || resp.data
       success('Product created successfully', {
         timeout: 5000,
-        actionLabel: 'Edit product',
-        onAction: () => router.push({ name: 'EditProduct', params: { id: created.id } })
+        actionLabel: 'View product',
+        onAction: () => router.push({ name: 'ProductDetails', params: { id: created.id } })
       })
-      await router.push({ name: 'EditProduct', params: { id: created.id } })
+      await router.push({ name: 'ProductDetails', params: { id: created.id } })
     }
   } catch (e) {
     error.value = 'Save failed: ' + (e.response?.data?.message || e.message)

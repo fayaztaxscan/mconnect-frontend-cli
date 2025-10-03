@@ -30,8 +30,15 @@
           <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
             <div>
               <div class="text-xl font-semibold">{{ product.name }}</div>
+
+              <!-- Existing SKU -->
               <div class="text-sm text-slate-500">
                 SKU: <span class="font-mono">{{ product.sku }}</span>
+              </div>
+
+              <!-- NEW: Model display -->
+              <div class="text-sm text-slate-500">
+                Model: <span class="font-mono">{{ product.model || '—' }}</span>
               </div>
             </div>
 

@@ -16,6 +16,7 @@
       <table class="min-w-full bg-white border-collapse border border-gray-200">
         <thead>
           <tr class="bg-gray-100">
+            <th class="px-4 py-2 border border-gray-200 text-center w-16">Image</th>
             <th class="px-4 py-2 border border-gray-200 text-left">Name</th>
             <th class="px-4 py-2 border border-gray-200 text-left">Category</th>
             <th class="px-4 py-2 border border-gray-200 text-right">Points</th>
@@ -27,6 +28,25 @@
         </thead>
         <tbody>
           <tr v-for="item in items" :key="item.id" class="hover:bg-gray-50">
+            <td class="px-4 py-2 border border-gray-200 text-center">
+              <div class="h-10 w-10 mx-auto flex items-center justify-center">
+                <img
+                  v-if="item.image_url"
+                  :src="item.image_url"
+                  :alt="item.name"
+                  class="h-10 w-10 object-contain"
+                  loading="lazy"
+                  @error="onImgError"
+                />
+                <img
+                  v-else
+                  src="/placeholder-product.png"
+                  alt=""
+                  class="h-10 w-10 object-contain opacity-70"
+                  loading="lazy"
+                />
+              </div>
+            </td>
             <td class="px-4 py-2 border border-gray-200">{{ item.name }}</td>
             <td class="px-4 py-2 border border-gray-200">{{ item.reward_category_name }}</td>
             <td class="px-4 py-2 border border-gray-200 text-right">{{ item.points_required }}</td>
@@ -47,7 +67,7 @@
                 class="text-green-600 hover:underline"
               >Edit</button>
               <button
-                @click="remove(item.id)"
+                @click="removeItem(item.id)"
                 class="text-red-600 hover:underline"
               >Delete</button>
             </td>
@@ -84,9 +104,18 @@ async function fetchItems() {
 function edit(id) {
   router.push({ name: 'EditRewardItem', params: { id } });
 }
-function remove(id) {
+function removeItem(id) {
   if (!confirm('Delete this reward item?')) return;
   deleteRewardItem(id).then(fetchItems);
+}
+
+// Make sure onerror doesn't loop; swap to placeholder once
+function onImgError(e) {
+  const img = e.target;
+  if (!img || img.dataset.fallbackApplied) return;
+  img.dataset.fallbackApplied = '1';
+  img.src = '/placeholder-product.png';
+  img.classList.add('opacity-70');
 }
 
 onMounted(fetchItems);

@@ -61,6 +61,35 @@
         />
       </div>
 
+      <!-- Image -->
+      <div>
+        <label class="block mb-1 font-medium">Image</label>
+        <div
+          class="border border-dashed rounded p-4 text-center bg-white hover:bg-slate-50 cursor-pointer"
+          @click="pickFile"
+          @dragover.prevent
+          @drop.prevent="onDrop"
+        >
+          <p class="text-sm text-gray-600">
+            Click or drop an image (JPG/PNG/WebP/GIF, ≤ 2 MB)
+          </p>
+          <img
+            v-if="previewUrl"
+            :src="previewUrl"
+            alt="Preview"
+            class="mx-auto mt-3 h-24 object-contain"
+          />
+        </div>
+        <input
+          ref="fileInput"
+          type="file"
+          class="hidden"
+          accept="image/*"
+          @change="onFileChange"
+        />
+        <p v-if="imageError" class="text-xs text-red-600 mt-1">{{ imageError }}</p>
+      </div>
+
       <!-- Available Stock -->
       <div>
         <label class="block mb-1 font-medium">Available Stock</label>
@@ -107,7 +136,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { createRewardItem } from '@/services/rewardItems';
+import { createRewardItem, uploadRewardImage } from '@/services/rewardItems';
 import { getRewardCategories } from '@/services/rewardCategories';
 
 const router = useRouter();
@@ -122,8 +151,41 @@ const form = ref({
   points_required: 0,
   market_mrp: 0,
   available_stock: 0,
-  status: 'active'
+  status: 'active',
 });
+
+const fileInput = ref(null);
+const file = ref(null);
+const previewUrl = ref('');
+const imageError = ref('');
+
+// helpers for image picking
+function pickFile() {
+  fileInput.value?.click();
+}
+function onDrop(e) {
+  const f = e.dataTransfer?.files?.[0];
+  if (f) loadFile(f);
+}
+function onFileChange(e) {
+  const f = e.target?.files?.[0];
+  if (f) loadFile(f);
+}
+function loadFile(f) {
+  imageError.value = '';
+  // basic client-side validation to match backend (≤ 2 MB & allowed mime)
+  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowed.includes(f.type)) {
+    imageError.value = 'Only JPG, PNG, WebP, or GIF images are allowed.';
+    return;
+  }
+  if (f.size > 2 * 1024 * 1024) {
+    imageError.value = 'Image must be 2 MB or smaller.';
+    return;
+  }
+  file.value = f;
+  previewUrl.value = URL.createObjectURL(f);
+}
 
 // Load categories on mount
 async function fetchCategories() {
@@ -140,13 +202,23 @@ async function fetchCategories() {
 
 // Handle form submit
 async function onSubmit() {
+  if (imageError.value) return; // block submit if image invalid
   saving.value = true;
   error.value = '';
   try {
     const { data } = await createRewardItem(form.value);
+    // if an image was selected, upload it now
+    if (file.value) {
+      try {
+        await uploadRewardImage(data.id, file.value);
+      } catch (upErr) {
+        // don't block navigation; just surface a gentle message
+        console.warn('Image upload failed:', upErr);
+      }
+    }
     router.push({ name: 'ViewRewardItem', params: { id: data.id } });
   } catch (e) {
-    error.value = e.response?.data?.error || 'Failed to create item.';
+    error.value = e?.response?.data?.error || 'Failed to create item.';
   } finally {
     saving.value = false;
   }

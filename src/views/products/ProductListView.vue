@@ -13,12 +13,21 @@
     </div>
 
     <!-- Filters -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 mb-4">
       <input
         v-model="filters.q"
         @input="debouncedFetch"
         type="text"
         placeholder="Search name / SKU"
+        class="border rounded px-3 py-2 w-full"
+      />
+
+      <!-- NEW: Model filter -->
+      <input
+        v-model="filters.model"
+        @input="debouncedFetch"
+        type="text"
+        placeholder="Search model"
         class="border rounded px-3 py-2 w-full"
       />
 
@@ -100,6 +109,16 @@
               Name <span v-if="isSorted('p.name')" class="opacity-60 text-xs">({{ order }})</span>
             </th>
 
+            <!-- NEW: Model column -->
+            <th
+              class="px-4 py-2 border cursor-pointer select-none"
+              @click="toggleSort('p.model')"
+              :aria-sort="ariaSort('p.model')"
+              title="Sort by Model"
+            >
+              Model <span v-if="isSorted('p.model')" class="opacity-60 text-xs">({{ order }})</span>
+            </th>
+
             <th class="px-4 py-2 border">Brand / Division / Category</th>
 
             <th
@@ -147,17 +166,17 @@
         <tbody>
           <!-- Loading -->
           <tr v-if="loading">
-            <td colspan="11" class="px-4 py-8 text-center text-gray-500">Loading…</td>
+            <td colspan="12" class="px-4 py-8 text-center text-gray-500">Loading…</td>
           </tr>
 
           <!-- Error -->
           <tr v-else-if="error">
-            <td colspan="11" class="px-4 py-8 text-center text-red-600">{{ error }}</td>
+            <td colspan="12" class="px-4 py-8 text-center text-red-600">{{ error }}</td>
           </tr>
 
           <!-- Empty -->
           <tr v-else-if="!products.length">
-            <td colspan="11" class="text-center py-6 text-gray-500">No products found.</td>
+            <td colspan="12" class="text-center py-6 text-gray-500">No products found.</td>
           </tr>
 
           <!-- Rows -->
@@ -182,6 +201,7 @@
 
             <td class="px-4 py-2 border font-mono">{{ p.sku }}</td>
             <td class="px-4 py-2 border">{{ p.name }}</td>
+            <td class="px-4 py-2 border">{{ p.model || '—' }}</td> <!-- NEW -->
 
             <td class="px-4 py-2 border">
               <div class="text-xs text-gray-700">
@@ -293,6 +313,7 @@ const order = ref('DESC')
 // filters the API understands (same keys as controller)
 const filters = ref({
   q: '',
+  model: '',            // NEW
   brand_id: '',
   division_id: '',
   category_id: '',
@@ -343,7 +364,7 @@ async function fetchCategories() {
 
 // ---------- list ----------
 function resetFilters() {
-  filters.value = { q: '', brand_id: '', division_id: '', category_id: '', active: '', eligible: '', show_deleted: '' }
+  filters.value = { q: '', model: '', brand_id: '', division_id: '', category_id: '', active: '', eligible: '', show_deleted: '' }
   meta.value.page = 1
   fetchProducts()
 }
@@ -371,6 +392,7 @@ async function fetchProducts(pageArg) {
     const params = { ...filters.value, page, limit: meta.value.limit, sort: sort.value, order: order.value }
 
     // prune empty filters so the API doesn’t over-filter
+    if (params.model === '') delete params.model       // NEW
     if (params.brand_id === '') delete params.brand_id
     if (params.division_id === '') delete params.division_id
     if (params.category_id === '') delete params.category_id
@@ -420,9 +442,10 @@ async function softDelete(p) {
 async function restore(p) {
   try {
     await api.post(`/products/${p.id}/restore`)
-    fetchProducts()
   } catch (e) {
     alert(e?.response?.data?.message || e.message || 'Restore failed')
+  } finally {
+    fetchProducts()
   }
 }
 

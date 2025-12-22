@@ -26,7 +26,7 @@
                class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
       </div>
 
-      <!-- NEW: Model -->
+      <!-- Model -->
       <div>
         <label for="model" class="block text-sm font-medium text-gray-700">
           Model <span class="text-gray-400 text-xs">(optional)</span>
@@ -36,7 +36,7 @@
                class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
       </div>
 
-      <!-- Brand & Division (filters only for choosing category) -->
+      <!-- Brand & Division -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label for="brand" class="block text-sm font-medium text-gray-700">Brand</label>
@@ -77,7 +77,7 @@
       <!-- Pricing -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label for="price" class="block text-sm font-medium text-gray-700">MRP (₹)</label>
+          <label for="price" class="block text-sm font-medium text-gray-700">Rate (₹)</label>
           <input id="price" v-model.number="form.price" type="number" step="0.01" min="0" required
                  class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
         </div>
@@ -117,7 +117,7 @@
         </div>
       </div>
 
-      <!-- Image (dealer-like: file input + preview; submitted in same request) -->
+      <!-- Image -->
       <div class="grid sm:grid-cols-[1fr_auto] gap-4 items-start">
         <div>
           <label class="block text-sm font-medium text-gray-700">Product Image</label>
@@ -185,24 +185,21 @@ const saving = ref(false)
 const error = ref('')
 const hydrating = ref(false)
 
-// --- image upload state (dealer-like) ---
 const uploadError = ref('')
 const fileInput = ref(null)
 const fileBlob = ref(null)
-const previewUrl = ref('')      // ObjectURL or absolute link
+const previewUrl = ref('')
 
-// --- form (DB columns) ---
 const form = reactive({
-  sku: '', name: '', model: '',           // <-- NEW model
+  sku: '', name: '', model: '',
   category_id: null, unit: '',
   price: 0, sale_price: null,
   reward_points: 0, is_reward_eligible: true,
   material: '', finish: '',
-  image_url: '',   // server may return absolute or /uploads path
+  image_url: '',
   active: 1
 })
 
-// --- filters for category ---
 const selection = reactive({ brand_id: null, division_id: null })
 const brands = ref([]); const divisions = ref([]); const categories = ref([]); const allCategories = ref([])
 
@@ -210,7 +207,6 @@ const previewFull = computed(() =>
   previewUrl.value ? previewUrl.value : (form.image_url ? resolveImageUrl(form.image_url) : '')
 )
 
-// ---------------- helpers ----------------
 function pluckArray(resp, keys = ['data', 'items', 'rows', 'list']) {
   const obj = resp?.data ?? resp
   if (Array.isArray(obj)) return obj
@@ -224,7 +220,6 @@ function pluckArray(resp, keys = ['data', 'items', 'rows', 'list']) {
   return []
 }
 
-// ---------------- fetchers ----------------
 async function fetchBrands() {
   try { brands.value = pluckArray(await api.get('/brands', { params: { limit: 1000 } })) }
   catch { brands.value = [] }
@@ -250,7 +245,6 @@ async function fetchCategories(divisionId = '') {
   } catch { categories.value = [] }
 }
 
-// -------------- load product --------------
 async function loadProduct(id) {
   try {
     hydrating.value = true
@@ -260,7 +254,7 @@ async function loadProduct(id) {
 
     form.sku = p.sku || ''
     form.name = p.name || ''
-    form.model = p.model || ''            // <-- NEW
+    form.model = p.model || ''
     form.category_id = Number(p.category_id)
     form.unit = p.unit || ''
     form.price = Number(p.price || 0)
@@ -270,15 +264,13 @@ async function loadProduct(id) {
     form.material = p.material || ''
     form.finish = p.finish || ''
     form.image_url = p.image_url_resolved || p.image_url || ''
-    previewUrl.value = '' // only show selected file preview; saved image via form.image_url
+    previewUrl.value = ''
     form.active = p.active ? 1 : 0
 
-    // ensure lists are ready
     if (!brands.value.length) await fetchBrands()
     if (!allCategories.value.length) await fetchCategories('')
 
-    // set brand/division DIRECTLY from product response (API returns these)
-    const brandId    = p.brand_id    != null ? Number(p.brand_id)    : null
+    const brandId = p.brand_id != null ? Number(p.brand_id) : null
     const divisionId = p.division_id != null ? Number(p.division_id) : null
     selection.brand_id = brandId
     await fetchDivisions(brandId || '')
@@ -294,19 +286,17 @@ async function loadProduct(id) {
   }
 }
 
-// -------------- validations --------------
 function validate() {
   if (!form.category_id) return 'Please select a category.'
-  if (!form.sku.trim())  return 'SKU is required.'
+  if (!form.sku.trim()) return 'SKU is required.'
   if (!form.name.trim()) return 'Name is required.'
   if (form.price < 0 || (form.sale_price !== null && form.sale_price < 0)) return 'Price values cannot be negative.'
-  if (form.sale_price !== null && form.sale_price > form.price) return 'Sale price cannot exceed MRP.'
+  if (form.sale_price !== null && form.sale_price > form.price) return 'Sale price cannot exceed Rate.'
   if (form.reward_points < 0) return 'Reward points cannot be negative.'
   if (fileBlob.value && fileBlob.value.size > 2 * 1024 * 1024) return 'Please upload up to 2 MB.'
   return ''
 }
 
-// -------------- submit (multipart like Dealer) --------------
 async function onSubmit() {
   if (saving.value) return
   error.value = ''
@@ -314,11 +304,10 @@ async function onSubmit() {
   const v = validate()
   if (v) { error.value = v; return }
 
-  // Build multipart/form-data (server will parse and also accept body strings)
   const fd = new FormData()
   fd.append('sku', form.sku.trim())
   fd.append('name', form.name.trim())
-  fd.append('model', form.model || '')                 // <-- NEW
+  fd.append('model', form.model || '')
   fd.append('category_id', String(form.category_id))
   fd.append('unit', form.unit || '')
   fd.append('price', String(form.price ?? 0))
@@ -327,12 +316,10 @@ async function onSubmit() {
   fd.append('is_reward_eligible', form.is_reward_eligible ? '1' : '0')
   fd.append('material', form.material || '')
   fd.append('finish', form.finish || '')
-  fd.append('image_url', form.image_url || '') // if user pasted a URL
+  fd.append('image_url', form.image_url || '')
   fd.append('active', form.active === 1 ? '1' : '0')
 
-  if (fileBlob.value) {
-    fd.append('image', fileBlob.value) // matches backend multer.single('image')
-  }
+  if (fileBlob.value) fd.append('image', fileBlob.value)
 
   saving.value = true
   try {
@@ -360,7 +347,6 @@ async function onSubmit() {
   }
 }
 
-// -------------- image handlers --------------
 function onFileChange(e) {
   uploadError.value = ''
   const f = e.target.files?.[0]
@@ -379,7 +365,6 @@ function clearSelectedFile() {
   if (fileInput.value) fileInput.value.value = ''
 }
 
-// ---------------- watchers & mount ----------------
 watch(() => selection.brand_id, async (brandId) => {
   if (hydrating.value) return
   selection.division_id = null

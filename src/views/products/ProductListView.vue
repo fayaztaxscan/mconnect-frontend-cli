@@ -22,7 +22,6 @@
         class="border rounded px-3 py-2 w-full"
       />
 
-      <!-- NEW: Model filter -->
       <input
         v-model="filters.model"
         @input="debouncedFetch"
@@ -109,7 +108,6 @@
               Name <span v-if="isSorted('p.name')" class="opacity-60 text-xs">({{ order }})</span>
             </th>
 
-            <!-- NEW: Model column -->
             <th
               class="px-4 py-2 border cursor-pointer select-none"
               @click="toggleSort('p.model')"
@@ -119,15 +117,15 @@
               Model <span v-if="isSorted('p.model')" class="opacity-60 text-xs">({{ order }})</span>
             </th>
 
-            <th class="px-4 py-2 border">Brand / Division / Category</th>
+            <th class="px-4 py-2 border">Brand / Division / Category / Finish</th>
 
             <th
               class="px-4 py-2 border text-right cursor-pointer select-none"
               @click="toggleSort('p.price')"
               :aria-sort="ariaSort('p.price')"
-              title="Sort by MRP"
+              title="Sort by Rate"
             >
-              MRP <span v-if="isSorted('p.price')" class="opacity-60 text-xs">({{ order }})</span>
+              Rate <span v-if="isSorted('p.price')" class="opacity-60 text-xs">({{ order }})</span>
             </th>
 
             <th
@@ -164,22 +162,18 @@
         </thead>
 
         <tbody>
-          <!-- Loading -->
           <tr v-if="loading">
             <td colspan="12" class="px-4 py-8 text-center text-gray-500">Loading…</td>
           </tr>
 
-          <!-- Error -->
           <tr v-else-if="error">
             <td colspan="12" class="px-4 py-8 text-center text-red-600">{{ error }}</td>
           </tr>
 
-          <!-- Empty -->
           <tr v-else-if="!products.length">
             <td colspan="12" class="text-center py-6 text-gray-500">No products found.</td>
           </tr>
 
-          <!-- Rows -->
           <tr v-else v-for="(p, i) in products" :key="p.id" class="hover:bg-gray-50">
             <td class="px-4 py-2 border">
               {{ (meta.page - 1) * meta.limit + i + 1 }}
@@ -201,15 +195,19 @@
 
             <td class="px-4 py-2 border font-mono">{{ p.sku }}</td>
             <td class="px-4 py-2 border">{{ p.name }}</td>
-            <td class="px-4 py-2 border">{{ p.model || '—' }}</td> <!-- NEW -->
+            <td class="px-4 py-2 border">{{ p.model || '—' }}</td>
 
             <td class="px-4 py-2 border">
               <div class="text-xs text-gray-700">
                 <div><span class="font-medium">Brand:</span> {{ p.brand_name }}</div>
                 <div><span class="font-medium">Division:</span> {{ p.division_name }}</div>
                 <div><span class="font-medium">Category:</span> {{ p.category_name }}</div>
+
+                <!-- Show only when finish exists -->
+                <div v-if="p.finish"><span class="font-medium">Finish:</span> {{ p.finish }}</div>
               </div>
             </td>
+
 
             <td class="px-4 py-2 border text-right">₹ {{ n(p.price) }}</td>
 
@@ -230,10 +228,7 @@
             </td>
 
             <td class="px-4 py-2 border">
-              <span
-                v-if="p.deleted_at"
-                class="px-2 py-1 rounded text-xs bg-red-100 text-red-700"
-              >deleted</span>
+              <span v-if="p.deleted_at" class="px-2 py-1 rounded text-xs bg-red-100 text-red-700">deleted</span>
               <span
                 v-else
                 class="px-2 py-1 rounded text-xs"
@@ -310,10 +305,9 @@ const meta = ref({ page: 1, pages: 1, limit: 10, total: 0 })
 const sort = ref('p.id')
 const order = ref('DESC')
 
-// filters the API understands (same keys as controller)
 const filters = ref({
   q: '',
-  model: '',            // NEW
+  model: '',
   brand_id: '',
   division_id: '',
   category_id: '',
@@ -324,7 +318,6 @@ const filters = ref({
 
 let _debounceId = null
 
-// ---------- helpers ----------
 function n(v) {
   return Number(v || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
@@ -345,7 +338,6 @@ function pluckArray(resp, keys = ['data', 'items', 'rows', 'list']) {
   return []
 }
 
-// ---------- meta fetch ----------
 async function fetchBrands() {
   try { brands.value = pluckArray(await api.get('/brands', { params: { limit: 1000 } })) }
   catch { brands.value = [] }
@@ -362,7 +354,6 @@ async function fetchCategories() {
   } catch { categories.value = [] }
 }
 
-// ---------- list ----------
 function resetFilters() {
   filters.value = { q: '', model: '', brand_id: '', division_id: '', category_id: '', active: '', eligible: '', show_deleted: '' }
   meta.value.page = 1
@@ -391,8 +382,7 @@ async function fetchProducts(pageArg) {
     const page = pageArg ?? meta.value.page
     const params = { ...filters.value, page, limit: meta.value.limit, sort: sort.value, order: order.value }
 
-    // prune empty filters so the API doesn’t over-filter
-    if (params.model === '') delete params.model       // NEW
+    if (params.model === '') delete params.model
     if (params.brand_id === '') delete params.brand_id
     if (params.division_id === '') delete params.division_id
     if (params.category_id === '') delete params.category_id
@@ -403,7 +393,7 @@ async function fetchProducts(pageArg) {
     const resp = await api.get('/products', { params })
     const body = resp.data
     products.value = body.data || body || []
-    meta.value.page  = body.meta?.page  ?? page
+    meta.value.page = body.meta?.page ?? page
     meta.value.limit = body.meta?.limit ?? meta.value.limit
     meta.value.total = body.meta?.total ?? products.value.length
     meta.value.pages = body.meta?.pages ?? 1
@@ -416,23 +406,17 @@ async function fetchProducts(pageArg) {
 }
 
 function goPrev() {
-  if (meta.value.page > 1 && !loading.value) {
-    fetchProducts(meta.value.page - 1)
-  }
+  if (meta.value.page > 1 && !loading.value) fetchProducts(meta.value.page - 1)
 }
 function goNext() {
-  if (meta.value.page < meta.value.pages && !loading.value) {
-    fetchProducts(meta.value.page + 1)
-  }
+  if (meta.value.page < meta.value.pages && !loading.value) fetchProducts(meta.value.page + 1)
 }
 
 async function softDelete(p) {
   if (!confirm(`Delete product "${p.name}"?`)) return
   try {
     await api.delete(`/products/${p.id}`)
-    if (products.value.length === 1 && meta.value.page > 1) {
-      meta.value.page -= 1
-    }
+    if (products.value.length === 1 && meta.value.page > 1) meta.value.page -= 1
     fetchProducts()
   } catch (e) {
     alert(e?.response?.data?.message || e.message || 'Delete failed')
@@ -462,9 +446,8 @@ function toggleSort(col) {
 function isSorted(col) { return sort.value === col }
 function ariaSort(col) { return isSorted(col) ? (order.value === 'ASC' ? 'ascending' : 'descending') : 'none' }
 
-// ---------- lifecycle ----------
 onMounted(async () => {
-  await Promise.all([ fetchBrands(), fetchDivisions(''), fetchCategories() ])
+  await Promise.all([fetchBrands(), fetchDivisions(''), fetchCategories()])
   await fetchProducts(1)
 })
 watch(() => filters.value.brand_id, async (brandId) => {

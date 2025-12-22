@@ -2,11 +2,17 @@
   <div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
     <form @submit.prevent="handleSubmit" class="w-full max-w-md bg-white rounded-lg shadow p-6 space-y-6">
       <!-- App brand -->
+      
+
       <div class="flex flex-col items-center space-y-2 -mt-1 mb-1">
         <img :src="logo" alt="MConnect" class="h-20 sm:h-24 w-auto" />
-        <!-- <h1 class="text-lg sm:text-xl font-semibold text-gray-900">MKonnect</h1> -->
+
+        <!-- NEW -->
+        <div class="text-base sm:text-lg font-semibold text-gray-900">Staff Login</div>
+
         <p class="text-xs text-gray-500">Sign in to continue</p>
       </div>
+
 
       <div class="space-y-1">
         <label for="email" class="block text-sm font-medium text-gray-700">Email</label>

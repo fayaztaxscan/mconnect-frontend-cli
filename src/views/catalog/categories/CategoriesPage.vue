@@ -32,8 +32,12 @@
         <div class="flex items-end gap-2">
           <div class="flex-1">
             <label class="block text-sm font-medium mb-1">Search</label>
-            <input v-model="filters.q" @keyup.enter="reload" placeholder="Name/Description"
-                   class="w-full border rounded px-3 py-2" />
+            <input
+              v-model="filters.q"
+              @keyup.enter="reload"
+              placeholder="Name/Description"
+              class="w-full border rounded px-3 py-2"
+            />
           </div>
           <button @click="reload" class="px-3 py-2 border rounded">Go</button>
         </div>
@@ -80,8 +84,10 @@
             <td class="px-4 py-2">{{ c.division_name || divisionName(c.division_id) }}</td>
             <td class="px-4 py-2">{{ c.parent_name || '—' }}</td>
             <td class="px-4 py-2 text-center">
-              <span :class="c.active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'"
-                    class="px-2 py-1 rounded text-xs">
+              <span
+                :class="c.active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'"
+                class="px-2 py-1 rounded text-xs"
+              >
                 {{ c.active ? 'Active' : 'Inactive' }}
               </span>
             </td>
@@ -89,16 +95,20 @@
             <td class="px-4 py-2">
               <div class="flex justify-end gap-2">
                 <button @click="openEdit(c)" class="px-3 py-1 border rounded">Edit</button>
+
                 <button
                   v-if="!c.deleted_at"
                   @click="confirmDelete(c)"
-                  class="px-3 py-1 border rounded text-red-600">
+                  class="px-3 py-1 border rounded text-red-600"
+                >
                   Delete
                 </button>
+
                 <button
                   v-else
                   @click="confirmRestore(c)"
-                  class="px-3 py-1 border rounded text-emerald-700">
+                  class="px-3 py-1 border rounded text-emerald-700"
+                >
                   Restore
                 </button>
               </div>
@@ -120,10 +130,20 @@
         Showing page {{ meta.page }} of {{ totalPages }}, total {{ meta.total }}
       </div>
       <div class="flex gap-2">
-        <button :disabled="meta.page <= 1" @click="goto(meta.page - 1)"
-                class="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
-        <button :disabled="meta.page >= totalPages" @click="goto(meta.page + 1)"
-                class="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+        <button
+          :disabled="meta.page <= 1"
+          @click="goto(meta.page - 1)"
+          class="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <button
+          :disabled="meta.page >= totalPages"
+          @click="goto(meta.page + 1)"
+          class="px-3 py-1 border rounded disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
 
@@ -142,54 +162,84 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import { storeToRefs } from 'pinia';
+import { computed, onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useCategoriesStore } from '@/stores/categories'
-import CategoryForm from './CategoryForm.vue';
+import CategoryForm from './CategoryForm.vue'
 
-const store = useCategoriesStore();
-const { items, meta, loading, error, divisions, filters } = storeToRefs(store);
+const store = useCategoriesStore()
+const { items, meta, loading, error, divisions, filters } = storeToRefs(store)
 
-const showForm = ref(false);
-const editRow = ref(null);
+const showForm = ref(false)
+const editRow = ref(null)
 
 const totalPages = computed(() =>
-   Math.max(1, Math.ceil((meta.value?.total || 0) / (meta.value?.limit || 1)))
-);
+  Math.max(1, Math.ceil((meta.value?.total || 0) / (meta.value?.limit || 1)))
+)
+
+// Parent options shown in filter dropdown should come from current list,
+// but exclude deleted + exclude the row being edited (if any).
 const parentOptions = computed(() =>
-   (items.value || []).filter(c => !c.deleted_at && String(c.id) !== String(editRow.value?.id))
-);
+  (items.value || []).filter(c => !c.deleted_at && String(c.id) !== String(editRow.value?.id))
+)
 
 function divisionName(id) {
-    const list = divisions.value || []; 
-    return list.find(d => String(d.id) === String(id))?.name || `#${id}`;
+  const list = divisions.value || []
+  return list.find(d => String(d.id) === String(id))?.name || `#${id}`
 }
 
 function formatDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleString();
+  if (!d) return '—'
+  return new Date(d).toLocaleString()
 }
+
 async function reload(extra = {}) {
-  await store.fetchList({ page: 1, ...extra });
+  await store.fetchList({ page: 1, ...extra })
 }
-function openCreate() { editRow.value = null; showForm.value = true; }
-function openEdit(row) { editRow.value = row; showForm.value = true; }
-function closeForm() { showForm.value = false; }
-async function onSaved() { showForm.value = false; await reload(); }
+
+function openCreate() {
+  editRow.value = null
+  showForm.value = true
+}
+function openEdit(row) {
+  editRow.value = row
+  showForm.value = true
+}
+function closeForm() {
+  showForm.value = false
+}
+
+async function onSaved() {
+  showForm.value = false
+  await reload()
+}
+
 async function confirmDelete(row) {
-  if (confirm(`Delete "${row.name}" (and its subcategories)?`)) await store.remove(row.id);
+  if (confirm(`Delete "${row.name}" (and its subcategories)?`)) {
+    await store.remove(row.id)
+    await reload()
+  }
 }
+
 async function confirmRestore(row) {
-  if (confirm(`Restore "${row.name}" (and its subcategories)?`)) await store.restore(row.id);
+  if (!confirm(`Restore "${row.name}" (and its subcategories)?`)) return
+  try {
+    await store.restore(row.id)
+    await reload()
+  } catch (e) {
+    // restore conflict (e.g., category with same name already active in same division)
+    const msg = e?.response?.data?.error || e?.message || 'Failed to restore category'
+    alert(msg)
+  }
 }
-function goto(page) 
-{
-   const p = Math.min(Math.max(1, page), totalPages.value);
-   store.fetchList({ page: p });
+
+function goto(page) {
+  const p = Math.min(Math.max(1, page), totalPages.value)
+  store.fetchList({ page: p })
 }
 
 onMounted(async () => {
-  await store.fetchDivisions();
-  await store.fetchList();
-});
+  await store.fetchDivisions()
+  await store.fetchList()
+})
 </script>

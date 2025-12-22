@@ -36,7 +36,7 @@
                 SKU: <span class="font-mono">{{ product.sku }}</span>
               </div>
 
-              <!-- NEW: Model display -->
+              <!-- Model display -->
               <div class="text-sm text-slate-500">
                 Model: <span class="font-mono">{{ product.model || '—' }}</span>
               </div>
@@ -81,7 +81,7 @@
       <!-- Prices / Points / Eligibility -->
       <div class="grid sm:grid-cols-3 gap-4">
         <div>
-          <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">MRP</div>
+          <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">Rate</div>
           <div class="text-sm">₹ {{ fmtMoney(product.price) }}</div>
         </div>
         <div>
@@ -95,8 +95,10 @@
           <div class="text-xs uppercase tracking-wide text-slate-500 mb-1">Reward</div>
           <div class="text-sm flex items-center gap-2">
             <span>{{ product.reward_points }} pts</span>
-            <span class="px-2 py-0.5 rounded text-xs"
-              :class="product.is_reward_eligible ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'">
+            <span
+              class="px-2 py-0.5 rounded text-xs"
+              :class="product.is_reward_eligible ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
+            >
               {{ product.is_reward_eligible ? 'Eligible' : 'Not eligible' }}
             </span>
           </div>
@@ -170,7 +172,6 @@ export default {
       this.loading = true
       this.error = ''
       try {
-        // backend returns { success:true, data: {...} }
         const res = await getProduct(this.id || this.$route.params.id)
         this.product = res?.data || res
       } catch (e) {

@@ -1,20 +1,27 @@
 // src/services/auth.js
-import api from '@/services/api';
+import api, { setToken } from '@/services/api'
 
-// baseURL already includes /api → use plain paths
-
+// POST /api/auth/login
 export async function login(email, password) {
-  const { data } = await api.post('/auth/login', { email, password });
-  // Save token so your interceptor adds Authorization on subsequent requests
-  localStorage.setItem('token', data.token);
-  return data; // { token, user }
+  const { data } = await api.post('/auth/login', { email, password })
+
+  // backend returns { token, user }
+  if (data?.token) setToken(data.token)
+
+  return data
 }
 
+// GET /api/auth/me (or /auth/me depending on your backend)
 export async function me() {
-  const { data } = await api.get('/auth/me'); // requires Authorization header (interceptor handles it)
-  return data; // { id, email, display_name, role_id, ... }
+  const { data } = await api.get('/auth/me')
+  // Some backends return { user }, some return user directly
+  return data?.user || data
 }
 
+// Client-side logout (no backend call required)
 export function logout() {
-  localStorage.removeItem('token');
+  // If you have a backend logout endpoint you can call it,
+  // but most JWT systems don’t need it.
+  // Example (optional): api.post('/auth/logout').catch(() => {})
+  setToken(null)
 }

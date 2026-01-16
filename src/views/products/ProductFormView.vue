@@ -13,8 +13,13 @@
         <label for="sku" class="block text-sm font-medium text-gray-700">
           SKU <span class="text-red-500">*</span>
         </label>
-        <input id="sku" v-model.trim="form.sku" type="text" required
-               class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+        <input
+          id="sku"
+          v-model.trim="form.sku"
+          type="text"
+          required
+          class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
       </div>
 
       <!-- Name -->
@@ -22,8 +27,13 @@
         <label for="name" class="block text-sm font-medium text-gray-700">
           Name <span class="text-red-500">*</span>
         </label>
-        <input id="name" v-model.trim="form.name" type="text" required
-               class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+        <input
+          id="name"
+          v-model.trim="form.name"
+          type="text"
+          required
+          class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
       </div>
 
       <!-- Model -->
@@ -31,25 +41,39 @@
         <label for="model" class="block text-sm font-medium text-gray-700">
           Model <span class="text-gray-400 text-xs">(optional)</span>
         </label>
-        <input id="model" v-model.trim="form.model" type="text" maxlength="100"
-               placeholder="e.g., ZX-100, 15s-eq2144AU"
-               class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+        <input
+          id="model"
+          v-model.trim="form.model"
+          type="text"
+          maxlength="100"
+          placeholder="e.g., ZX-100, 15s-eq2144AU"
+          class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
       </div>
 
       <!-- Brand & Division -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label for="brand" class="block text-sm font-medium text-gray-700">Brand</label>
-          <select id="brand" v-model.number="selection.brand_id" :disabled="!brands.length"
-                  class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <select
+            id="brand"
+            v-model.number="selection.brand_id"
+            :disabled="!brands.length"
+            class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
             <option :value="null">All Brands</option>
             <option v-for="b in brands" :key="b.id" :value="Number(b.id)">{{ b.name }}</option>
           </select>
         </div>
+
         <div>
           <label for="division" class="block text-sm font-medium text-gray-700">Division</label>
-          <select id="division" v-model.number="selection.division_id" :disabled="!divisions.length"
-                  class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100">
+          <select
+            id="division"
+            v-model.number="selection.division_id"
+            :disabled="!divisions.length"
+            class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
+          >
             <option :value="null">All Divisions</option>
             <option v-for="d in divisions" :key="d.id" :value="Number(d.id)">{{ d.name }}</option>
           </select>
@@ -61,8 +85,13 @@
         <label for="category" class="block text-sm font-medium text-gray-700">
           Category <span class="text-red-500">*</span>
         </label>
-        <select id="category" v-model.number="form.category_id" required :disabled="!categories.length"
-                class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100">
+        <select
+          id="category"
+          v-model.number="form.category_id"
+          required
+          :disabled="!categories.length"
+          class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
+        >
           <option :value="null" disabled>Select a category</option>
           <option v-for="c in categories" :key="c.id" :value="Number(c.id)">
             {{ c.name }}
@@ -78,13 +107,27 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label for="price" class="block text-sm font-medium text-gray-700">Rate (₹)</label>
-          <input id="price" v-model.number="form.price" type="number" step="0.01" min="0" required
-                 class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          <input
+            id="price"
+            v-model.number="form.price"
+            type="number"
+            step="0.01"
+            min="0"
+            required
+            class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
         </div>
         <div>
           <label for="sale_price" class="block text-sm font-medium text-gray-700">Sale Price (₹, optional)</label>
-          <input id="sale_price" v-model.number="form.sale_price" type="number" step="0.01" min="0"
-                 class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Leave blank if none"/>
+          <input
+            id="sale_price"
+            v-model.number="form.sale_price"
+            type="number"
+            step="0.01"
+            min="0"
+            class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Leave blank if none"
+          />
         </div>
       </div>
 
@@ -92,28 +135,133 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label for="reward_points" class="block text-sm font-medium text-gray-700">Reward Points</label>
-          <input id="reward_points" v-model.number="form.reward_points" type="number" min="0"
-                 class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+          <input
+            id="reward_points"
+            v-model.number="form.reward_points"
+            type="number"
+            min="0"
+            class="mt-1 block w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
         </div>
         <div class="flex items-center gap-2 mt-6 sm:mt-8">
-          <input id="eligible" type="checkbox" v-model="form.is_reward_eligible" class="h-4 w-4"/>
+          <input id="eligible" type="checkbox" v-model="form.is_reward_eligible" class="h-4 w-4" />
           <label for="eligible" class="text-sm">Reward eligible</label>
         </div>
       </div>
 
-      <!-- Attributes -->
+      <!-- Attributes (your existing fixed optional fields) -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label for="unit" class="block text-sm font-medium text-gray-700">Unit</label>
-          <input id="unit" v-model.trim="form.unit" class="mt-1 block w-full border rounded px-3 py-2" placeholder="e.g., pcs, box"/>
+          <input id="unit" v-model.trim="form.unit" class="mt-1 block w-full border rounded px-3 py-2" placeholder="e.g., pcs, box" />
         </div>
         <div>
           <label for="material" class="block text-sm font-medium text-gray-700">Material</label>
-          <input id="material" v-model.trim="form.material" class="mt-1 block w-full border rounded px-3 py-2" placeholder="e.g., Stainless Steel"/>
+          <input id="material" v-model.trim="form.material" class="mt-1 block w-full border rounded px-3 py-2" placeholder="e.g., Stainless Steel" />
         </div>
         <div>
           <label for="finish" class="block text-sm font-medium text-gray-700">Finish</label>
-          <input id="finish" v-model.trim="form.finish" class="mt-1 block w-full border rounded px-3 py-2" placeholder="e.g., SS Chrome/SS Matt"/>
+          <input id="finish" v-model.trim="form.finish" class="mt-1 block w-full border rounded px-3 py-2" placeholder="e.g., SS Chrome/SS Matt" />
+        </div>
+      </div>
+
+      <!-- ✅ Dynamic Custom Fields (Option A) -->
+      <div class="border rounded-lg p-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-semibold">Additional Details</h3>
+            <p class="text-xs text-slate-500">These fields depend on the selected category.</p>
+          </div>
+          <div v-if="attrLoading" class="text-xs text-slate-500">Loading fields…</div>
+        </div>
+
+        <div v-if="attrError" class="text-sm text-red-600 mt-2">{{ attrError }}</div>
+
+        <div v-if="!attrLoading && attrDefs.length === 0" class="text-sm text-slate-500 mt-3">
+          No additional fields for this category.
+        </div>
+
+        <div v-else class="mt-4 space-y-4">
+          <div v-for="def in attrDefs" :key="def.id" class="grid grid-cols-1 sm:grid-cols-[260px_1fr] gap-2 items-start">
+            <div>
+              <label class="block text-sm font-medium text-gray-700">
+                {{ def.label }}
+                <span v-if="def.required" class="text-red-500">*</span>
+                <span v-if="def.unit" class="text-gray-400 text-xs">({{ def.unit }})</span>
+              </label>
+              <p v-if="def.data_type === 'multiselect'" class="text-xs text-slate-500">You can select multiple.</p>
+            </div>
+
+            <!-- text -->
+            <input
+              v-if="def.data_type === 'text'"
+              v-model.trim="attrValues[def.attr_key]"
+              type="text"
+              class="w-full border rounded px-3 py-2"
+              :placeholder="def.label"
+            />
+
+            <!-- number -->
+            <input
+              v-else-if="def.data_type === 'number'"
+              v-model.number="attrValues[def.attr_key]"
+              type="number"
+              step="0.01"
+              class="w-full border rounded px-3 py-2"
+              :placeholder="def.unit ? def.unit : def.label"
+            />
+
+            <!-- bool -->
+            <div v-else-if="def.data_type === 'bool'" class="flex items-center gap-2 pt-2">
+              <input
+                :id="`attr_${def.attr_key}`"
+                type="checkbox"
+                v-model="attrValues[def.attr_key]"
+                class="h-4 w-4"
+              />
+              <label :for="`attr_${def.attr_key}`" class="text-sm text-slate-700">Yes</label>
+            </div>
+
+            <!-- date -->
+            <input
+              v-else-if="def.data_type === 'date'"
+              v-model="attrValues[def.attr_key]"
+              type="date"
+              class="w-full border rounded px-3 py-2"
+            />
+
+            <!-- select -->
+            <select
+              v-else-if="def.data_type === 'select'"
+              v-model="attrValues[def.attr_key]"
+              class="w-full border rounded px-3 py-2"
+            >
+              <option value="">Select</option>
+              <option v-for="opt in (def.options || [])" :key="opt" :value="opt">{{ opt }}</option>
+            </select>
+
+            <!-- multiselect -->
+            <select
+              v-else-if="def.data_type === 'multiselect'"
+              multiple
+              v-model="attrValues[def.attr_key]"
+              class="w-full border rounded px-3 py-2 h-28"
+            >
+              <option v-for="opt in (def.options || [])" :key="opt" :value="opt">{{ opt }}</option>
+            </select>
+
+            <!-- fallback -->
+            <input
+              v-else
+              v-model.trim="attrValues[def.attr_key]"
+              type="text"
+              class="w-full border rounded px-3 py-2"
+            />
+
+            <p v-if="attrFieldErrors[def.attr_key]" class="text-xs text-red-600 sm:col-start-2">
+              {{ attrFieldErrors[def.attr_key] }}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -134,7 +282,7 @@
 
         <div class="justify-self-end">
           <div v-if="previewUrl || form.image_url" class="flex flex-col items-center">
-            <img :src="previewFull" alt="Preview" class="h-20 w-20 rounded object-cover border bg-white"/>
+            <img :src="previewFull" alt="Preview" class="h-20 w-20 rounded object-cover border bg-white" />
             <button
               v-if="previewUrl"
               type="button"
@@ -160,8 +308,11 @@
         <router-link :to="{ name: 'ProductList' }" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
           Cancel
         </router-link>
-        <button type="submit" :disabled="saving"
-                class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50">
+        <button
+          type="submit"
+          :disabled="saving"
+          class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
+        >
           {{ saving ? (isEditing ? 'Updating…' : 'Creating…') : (isEditing ? 'Update' : 'Create') }}
         </button>
       </div>
@@ -175,6 +326,7 @@ import { useRouter, useRoute } from 'vue-router'
 import api from '@/services/api'
 import { resolveImageUrl } from '@/utils/imageUrl'
 import { useToast } from '@/composables/useToast'
+import { getCategoryAttributeDefs } from '@/services/categories'
 
 const router = useRouter()
 const route = useRoute()
@@ -190,18 +342,34 @@ const fileInput = ref(null)
 const fileBlob = ref(null)
 const previewUrl = ref('')
 
+// ✅ dynamic attribute defs + values
+const attrDefs = ref([])
+const attrValues = reactive({}) // key -> value
+const attrLoading = ref(false)
+const attrError = ref('')
+const attrFieldErrors = reactive({}) // key -> message
+
 const form = reactive({
-  sku: '', name: '', model: '',
-  category_id: null, unit: '',
-  price: 0, sale_price: null,
-  reward_points: 0, is_reward_eligible: true,
-  material: '', finish: '',
+  sku: '',
+  name: '',
+  model: '',
+  category_id: null,
+  unit: '',
+  price: 0,
+  sale_price: null,
+  reward_points: 0,
+  is_reward_eligible: true,
+  material: '',
+  finish: '',
   image_url: '',
   active: 1
 })
 
 const selection = reactive({ brand_id: null, division_id: null })
-const brands = ref([]); const divisions = ref([]); const categories = ref([]); const allCategories = ref([])
+const brands = ref([])
+const divisions = ref([])
+const categories = ref([])
+const allCategories = ref([])
 
 const previewFull = computed(() =>
   previewUrl.value ? previewUrl.value : (form.image_url ? resolveImageUrl(form.image_url) : '')
@@ -224,27 +392,141 @@ async function fetchBrands() {
   try { brands.value = pluckArray(await api.get('/brands', { params: { limit: 1000 } })) }
   catch { brands.value = [] }
 }
+
 async function fetchDivisions(brandId = '') {
   try {
-    const params = { limit: 1000 }; if (brandId) params.brand_id = brandId
+    const params = { limit: 1000 }
+    if (brandId) params.brand_id = brandId
     divisions.value = pluckArray(await api.get('/divisions', { params }))
   } catch { divisions.value = [] }
 }
+
 async function fetchCategories(divisionId = '') {
   try {
     if (divisionId) {
       try {
-        categories.value = pluckArray(await api.get('/categories', { params: { division_id: divisionId, limit: 1000 } })).filter(x => !x.deleted_at)
+        categories.value = pluckArray(
+          await api.get('/categories', { params: { division_id: divisionId, limit: 1000 } })
+        ).filter(x => !x.deleted_at)
         return
       } catch {}
       categories.value = pluckArray(await api.get(`/categories/division/${divisionId}`)).filter(x => !x.deleted_at)
       return
     }
     const all = pluckArray(await api.get('/categories', { params: { limit: 1000 } })).filter(x => !x.deleted_at)
-    allCategories.value = all; categories.value = all
+    allCategories.value = all
+    categories.value = all
   } catch { categories.value = [] }
 }
 
+// ---------- Option A: attribute defs ----------
+function clearAttrState() {
+  attrDefs.value = []
+  attrError.value = ''
+  for (const k of Object.keys(attrValues)) delete attrValues[k]
+  for (const k of Object.keys(attrFieldErrors)) delete attrFieldErrors[k]
+}
+
+function parseAttributesJson(input) {
+  if (!input) return {}
+  if (typeof input === 'object') return input
+  if (typeof input === 'string') {
+    const s = input.trim()
+    if (!s) return {}
+    try {
+      const parsed = JSON.parse(s)
+      return parsed && typeof parsed === 'object' ? parsed : {}
+    } catch {
+      return {}
+    }
+  }
+  return {}
+}
+
+function initAttrValuesFromDefs(defs, existing = {}) {
+  // ensure keys exist with correct base type
+  for (const d of defs) {
+    const k = d.attr_key
+    const t = d.data_type
+
+    const prev = existing?.[k]
+
+    if (t === 'multiselect') {
+      // must be array
+      attrValues[k] = Array.isArray(prev) ? prev : (prev ? [String(prev)] : [])
+    } else if (t === 'bool') {
+      attrValues[k] = !!prev
+    } else if (t === 'number') {
+      attrValues[k] = (prev === '' || prev == null) ? null : (Number.isFinite(+prev) ? +prev : null)
+    } else {
+      attrValues[k] = (prev === undefined || prev === null) ? '' : String(prev)
+    }
+  }
+
+  // remove stale keys not in defs (optional but cleaner)
+  const allowed = new Set(defs.map(d => d.attr_key))
+  for (const k of Object.keys(attrValues)) {
+    if (!allowed.has(k)) delete attrValues[k]
+  }
+}
+
+async function loadAttrDefs(categoryId, existingAttrs = null) {
+  clearAttrState()
+  if (!categoryId) return
+
+  attrLoading.value = true
+  try {
+    const resp = await getCategoryAttributeDefs(categoryId)
+    const defs = Array.isArray(resp?.data) ? resp.data : (Array.isArray(resp) ? resp : [])
+    // normalize options field
+    attrDefs.value = defs.map(d => ({
+      ...d,
+      options: Array.isArray(d.options) ? d.options : (Array.isArray(d.options_json) ? d.options_json : [])
+    }))
+
+    const existing = existingAttrs ? parseAttributesJson(existingAttrs) : {}
+    initAttrValuesFromDefs(attrDefs.value, existing)
+  } catch (e) {
+    attrError.value = e?.response?.data?.message || e?.message || 'Failed to load custom fields'
+    attrDefs.value = []
+  } finally {
+    attrLoading.value = false
+  }
+}
+
+function validateDynamicAttributes() {
+  // reset field errors
+  for (const k of Object.keys(attrFieldErrors)) delete attrFieldErrors[k]
+
+  const defs = attrDefs.value || []
+  for (const d of defs) {
+    if (!d.required) continue
+
+    const k = d.attr_key
+    const t = d.data_type
+    const v = attrValues[k]
+
+    if (t === 'multiselect') {
+      if (!Array.isArray(v) || v.length === 0) attrFieldErrors[k] = 'This field is required'
+    } else if (t === 'select') {
+      if (!v || String(v).trim() === '') attrFieldErrors[k] = 'This field is required'
+    } else if (t === 'number') {
+      if (v === null || v === '' || Number.isNaN(Number(v))) attrFieldErrors[k] = 'This field is required'
+    } else if (t === 'date') {
+      if (!v || String(v).trim() === '') attrFieldErrors[k] = 'This field is required'
+    } else if (t === 'text') {
+      if (!v || String(v).trim() === '') attrFieldErrors[k] = 'This field is required'
+    } else if (t === 'bool') {
+      // For required bool: we consider false as still "provided".
+      // If you want "required means must be checked", uncomment below:
+      // if (!v) attrFieldErrors[k] = 'Please check this box'
+    }
+  }
+
+  return Object.keys(attrFieldErrors).length === 0
+}
+
+// ---------- load product ----------
 async function loadProduct(id) {
   try {
     hydrating.value = true
@@ -278,6 +560,9 @@ async function loadProduct(id) {
     await fetchCategories(divisionId || '')
 
     form.category_id = Number(p.category_id)
+
+    // ✅ load dynamic fields for this category, hydrating from product.attributes_json
+    await loadAttrDefs(form.category_id, p.attributes_json)
   } catch (e) {
     error.value = 'Failed to load product: ' + (e.response?.data?.message || e.message)
     console.error(e)
@@ -294,7 +579,35 @@ function validate() {
   if (form.sale_price !== null && form.sale_price > form.price) return 'Sale price cannot exceed Rate.'
   if (form.reward_points < 0) return 'Reward points cannot be negative.'
   if (fileBlob.value && fileBlob.value.size > 2 * 1024 * 1024) return 'Please upload up to 2 MB.'
+
+  // ✅ validate dynamic required fields
+  const ok = validateDynamicAttributes()
+  if (!ok) return 'Please fill all required additional fields.'
+
   return ''
+}
+
+function buildAttributesPayload() {
+  // Only include keys from defs
+  const defs = attrDefs.value || []
+  const out = {}
+  for (const d of defs) {
+    const k = d.attr_key
+    const t = d.data_type
+    const v = attrValues[k]
+
+    if (t === 'multiselect') {
+      out[k] = Array.isArray(v) ? v : []
+    } else if (t === 'number') {
+      out[k] = (v === '' || v == null) ? null : (Number.isFinite(+v) ? +v : null)
+    } else if (t === 'bool') {
+      out[k] = !!v
+    } else {
+      // text/select/date
+      out[k] = (v == null) ? '' : String(v)
+    }
+  }
+  return out
 }
 
 async function onSubmit() {
@@ -318,6 +631,10 @@ async function onSubmit() {
   fd.append('finish', form.finish || '')
   fd.append('image_url', form.image_url || '')
   fd.append('active', form.active === 1 ? '1' : '0')
+
+  // ✅ Option A dynamic attributes
+  const attrs = buildAttributesPayload()
+  fd.append('attributes_json', JSON.stringify(attrs))
 
   if (fileBlob.value) fd.append('image', fileBlob.value)
 
@@ -347,6 +664,7 @@ async function onSubmit() {
   }
 }
 
+// ---------- image ----------
 function onFileChange(e) {
   uploadError.value = ''
   const f = e.target.files?.[0]
@@ -359,34 +677,55 @@ function onFileChange(e) {
   fileBlob.value = f
   previewUrl.value = URL.createObjectURL(f)
 }
+
 function clearSelectedFile() {
   fileBlob.value = null
   previewUrl.value = ''
   if (fileInput.value) fileInput.value.value = ''
 }
 
+// ---------- watches ----------
 watch(() => selection.brand_id, async (brandId) => {
   if (hydrating.value) return
   selection.division_id = null
   form.category_id = null
   await fetchDivisions(brandId || '')
   categories.value = []
+  clearAttrState()
 })
+
 watch(() => selection.division_id, async (divisionId) => {
   if (hydrating.value) return
   await fetchCategories(divisionId || '')
   if (!categories.value.some(c => Number(c.id) === Number(form.category_id))) {
     form.category_id = null
+    clearAttrState()
   }
+})
+
+watch(() => form.category_id, async (categoryId, prev) => {
+  if (hydrating.value) return
+  if (!categoryId) {
+    clearAttrState()
+    return
+  }
+
+  // When user changes category manually, load defs fresh (no existing attrs)
+  // In edit mode, if category changed, reset values to blank/default.
+  await loadAttrDefs(categoryId, null)
 })
 
 onMounted(async () => {
   await fetchBrands()
   await fetchDivisions('')
   await fetchCategories('')
+
   if (route.name === 'EditProduct' || route.params.id) {
     isEditing.value = true
     await loadProduct(route.params.id)
+  } else {
+    // If creating and category already selected by default somewhere, load defs
+    if (form.category_id) await loadAttrDefs(form.category_id, null)
   }
 })
 </script>

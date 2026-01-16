@@ -147,15 +147,17 @@
       </div>
     </div>
 
-    <!-- Create/Edit Modal -->
-    <CategoryForm
-      v-if="showForm"
-      :initial="editRow"
-      :divisions="divisions"
-      :parentOptions="parentOptions"
-      @close="closeForm"
-      @saved="onSaved"
-    />
+    <!-- ✅ IMPORTANT: Teleport modal to body so it never gets clipped -->
+    <teleport to="body">
+      <CategoryForm
+        v-if="showForm"
+        :initial="editRow"
+        :divisions="divisions"
+        :parentOptions="parentOptions"
+        @close="closeForm"
+        @saved="onSaved"
+      />
+    </teleport>
 
     <div v-if="error" class="mt-3 text-red-600">{{ error }}</div>
   </div>
@@ -177,8 +179,6 @@ const totalPages = computed(() =>
   Math.max(1, Math.ceil((meta.value?.total || 0) / (meta.value?.limit || 1)))
 )
 
-// Parent options shown in filter dropdown should come from current list,
-// but exclude deleted + exclude the row being edited (if any).
 const parentOptions = computed(() =>
   (items.value || []).filter(c => !c.deleted_at && String(c.id) !== String(editRow.value?.id))
 )
@@ -227,7 +227,6 @@ async function confirmRestore(row) {
     await store.restore(row.id)
     await reload()
   } catch (e) {
-    // restore conflict (e.g., category with same name already active in same division)
     const msg = e?.response?.data?.error || e?.message || 'Failed to restore category'
     alert(msg)
   }

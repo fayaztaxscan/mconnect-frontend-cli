@@ -1,5 +1,6 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
+import { h } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 
 // Auth & Layout
@@ -46,7 +47,7 @@ import DealerDetails from '@/views/settings/Dealers/DealerDetails.vue'
 const BrandsList = () => import('@/views/catalog/BrandsList.vue')
 const BrandForm = () => import('@/views/catalog/BrandForm.vue')
 
-// Settings — Shops (lazy)
+// ✅ Shops (lazy)
 const ShopsList = () => import('@/views/settings/Shops/ShopList.vue')
 const ShopForm = () => import('@/views/settings/Shops/ShopForm.vue')
 const ShopDetails = () => import('@/views/settings/Shops/ShopDetails.vue')
@@ -64,26 +65,43 @@ const ProductListView = () => import('@/views/products/ProductListView.vue')
 const ProductFormView = () => import('@/views/products/ProductFormView.vue')
 const ProductDetails = () => import('@/views/products/ProductDetails.vue')
 
-// ✅ CSR Signup Requests page (make sure this file exists at this path)
+// ✅ CSR Signup Requests page
 const CSRSignupRequests = () => import('@/views/csr/SignupRequestsView.vue')
+
+// ✅ BDM page placeholder (so you don’t get blank + no logout)
+// Replace this with a real component import later.
+const BDMRequests = {
+  name: 'BDMRequestsPlaceholder',
+  render() {
+    return h('div', { class: 'p-6 max-w-4xl mx-auto' }, [
+      h('h1', { class: 'text-2xl font-bold mb-2' }, 'BDM Approval Queue'),
+      h('p', { class: 'text-slate-600 mb-4' },
+        'Your BDM approval UI component is not wired yet. This route is now stable (no blank page), and logout/sidebar will work.'
+      ),
+      h('p', { class: 'text-sm text-slate-500' },
+        'Next: create a proper BDM queue view and replace this placeholder route component.'
+      )
+    ])
+  }
+}
 
 const routes = [
   // Public
   { path: '/', redirect: '/login' },
   { path: '/login', name: 'Login', component: LoginView },
 
-  // Protected
+  // Protected (App Shell)
   {
     path: '/',
     component: ProtectedRoute,
     meta: { requiresAuth: true },
     children: [
-      // Landing (CSR will be redirected by guard anyway)
+      // Default landing (guard will re-route by role)
       { path: '', redirect: { name: 'AdminDashboard' } },
 
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       // ADMIN
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       {
         path: 'admin',
         children: [
@@ -96,24 +114,30 @@ const routes = [
         ]
       },
 
-      // ───────────────────────────────────────────────────────────
-      // CSR  ✅ (WAS MISSING)
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
+      // CSR
+      // ─────────────────────────────────────────────
       {
         path: 'csr',
         children: [
           { path: '', name: 'CSRDashboard', component: CSRDashboard },
-          {
-            path: 'signup-requests',
-            name: 'CSRSignupRequests',
-            component: CSRSignupRequests
-          }
+          { path: 'signup-requests', name: 'CSRSignupRequests', component: CSRSignupRequests }
         ]
       },
 
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
+      // BDM ✅
+      // ─────────────────────────────────────────────
+      {
+        path: 'bdm',
+        children: [
+          { path: 'requests', name: 'BDMRequests', component: BDMRequests }
+        ]
+      },
+
+      // ─────────────────────────────────────────────
       // SALES
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       {
         path: 'sales',
         children: [
@@ -125,9 +149,9 @@ const routes = [
 
       { path: 'reports', name: 'ReportsView', component: ReportsView },
 
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       // CATALOG: BRANDS
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       {
         path: 'brands',
         children: [
@@ -137,9 +161,9 @@ const routes = [
         ]
       },
 
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       // CATALOG: DIVISIONS
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       {
         path: 'divisions',
         children: [
@@ -149,9 +173,9 @@ const routes = [
         ]
       },
 
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       // CATALOG: CATEGORIES
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       {
         path: 'categories',
         children: [
@@ -161,24 +185,22 @@ const routes = [
         ]
       },
 
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       // CATALOG: PRODUCTS
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       {
         path: 'products',
         children: [
           { path: '', name: 'ProductList', component: ProductListView },
           { path: 'new', name: 'CreateProduct', component: ProductFormView },
           { path: ':id/edit', name: 'EditProduct', component: ProductFormView, props: true },
-
-          // ✅ IMPORTANT: don't start with "/" inside children (otherwise becomes absolute)
           { path: ':id', name: 'ProductDetails', component: ProductDetails, props: true }
         ]
       },
 
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       // DEALERS
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       {
         path: 'dealers',
         children: [
@@ -189,9 +211,9 @@ const routes = [
         ]
       },
 
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       // USERS
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       {
         path: 'users',
         children: [
@@ -202,9 +224,9 @@ const routes = [
         ]
       },
 
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       // REWARDS
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       {
         path: 'rewards',
         children: [
@@ -232,9 +254,9 @@ const routes = [
         ]
       },
 
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       // SETTINGS
-      // ───────────────────────────────────────────────────────────
+      // ─────────────────────────────────────────────
       {
         path: 'settings',
         children: [
@@ -279,25 +301,28 @@ router.beforeEach(async (to, _from, next) => {
     try {
       await auth.hydrate()
     } catch (_) {
-      // If hydrate fails, force logout path
       return next({ name: 'Login' })
     }
   }
 
-  const roleName = (auth.currentUser.value?.role_name || '').toUpperCase()
+  const roleName = String(auth.currentUser.value?.role_name || '').toUpperCase()
 
-  // ✅ CSR restriction + landing
+  // Role landing
+  if (to.path === '/' || to.name === 'AdminDashboard') {
+    if (roleName === 'CSR') return next({ name: 'CSRSignupRequests' })
+    if (roleName === 'BDM') return next({ name: 'BDMRequests' })
+  }
+
+  // CSR restrictions
   if (roleName === 'CSR') {
     const allowed = new Set(['CSRDashboard', 'CSRSignupRequests', 'Login'])
+    if (!allowed.has(to.name)) return next({ name: 'CSRSignupRequests' })
+  }
 
-    // Force CSR to land on Signup Requests page
-    if (to.name === 'CSRDashboard') {
-      return next({ name: 'CSRSignupRequests' })
-    }
-
-    if (!allowed.has(to.name)) {
-      return next({ name: 'CSRSignupRequests' })
-    }
+  // BDM restrictions ✅ (only approval queue for now)
+  if (roleName === 'BDM') {
+    const allowed = new Set(['BDMRequests', 'Login'])
+    if (!allowed.has(to.name)) return next({ name: 'BDMRequests' })
   }
 
   next()

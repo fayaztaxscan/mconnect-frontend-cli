@@ -42,7 +42,7 @@
       <template v-if="user.status">
         <p><strong>Status:</strong> {{ user.status }}</p>
       </template>
-      <p><strong>Active:</strong> {{ user.is_active ? 'Yes' : 'No' }}</p>
+      <p><strong>Active:</strong> {{ Number(user.is_active) === 1 ? 'Yes' : 'No' }}</p>
       <template v-if="createdByName">
         <p><strong>Created By:</strong> {{ createdByName }}</p>
       </template>
@@ -84,39 +84,65 @@ const languages      = ref([])
 const createdByName  = ref('')
 const updatedByName  = ref('')
 
-// Format timestamp into readable string
 function formatDate(ts) {
   return ts ? new Date(ts).toLocaleString() : '—'
+}
+
+// ✅ unwrap helpers (fixes your issue)
+function unwrapObject(payload) {
+  // supports {success:true,data:{...}} OR direct object
+  if (payload && typeof payload === 'object' && payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
+    return payload.data
+  }
+  return payload || {}
+}
+
+function unwrapArray(payload) {
+  // supports [] | {data: []} | {success:true,data: []}
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload?.data)) return payload.data
+  return []
 }
 
 async function fetchDetails() {
   loading.value = true
   error.value   = ''
+
   try {
     const [userRes, langsRes] = await Promise.all([
       api.get(`/users/${id}`),
       api.get('/localization/languages')
     ])
-    user.value      = userRes.data
-    languages.value = langsRes.data
 
-    // Map language code to full name
+    // ✅ FIX: correct nesting
+    const u = unwrapObject(userRes.data)
+    user.value = u
+
+    // ✅ FIX: languages may be wrapped
+    languages.value = unwrapArray(langsRes.data)
+
+    // Map language code -> name (without breaking reactivity)
     const lang = languages.value.find(l => l.code === user.value.preferred_language)
     user.value.preferred_language_name = lang ? lang.name : user.value.preferred_language
 
-    // Fetch creator/updater names
+    // Fetch creator/updater names (also wrapped!)
     const creatorId = user.value.created_by
     const updaterId = user.value.updated_by
+
     const [creatorRes, updaterRes] = await Promise.all([
-      creatorId ? api.get(`/users/${creatorId}`) : Promise.resolve({ data: { display_name: '—' } }),
-      updaterId ? api.get(`/users/${updaterId}`) : Promise.resolve({ data: { display_name: '—' } }),
+      creatorId ? api.get(`/users/${creatorId}`) : Promise.resolve({ data: { success: true, data: { display_name: '—' } } }),
+      updaterId ? api.get(`/users/${updaterId}`) : Promise.resolve({ data: { success: true, data: { display_name: '—' } } }),
     ])
-    createdByName.value = creatorRes.data.display_name
-    updatedByName.value = updaterRes.data.display_name
+
+    const creatorObj = unwrapObject(creatorRes.data)
+    const updaterObj = unwrapObject(updaterRes.data)
+
+    createdByName.value = creatorObj.display_name || '—'
+    updatedByName.value = updaterObj.display_name || '—'
 
   } catch (err) {
     console.error('Failed to load user details:', err)
-    error.value = 'Failed to load user'
+    error.value = err?.response?.data?.error || err?.message || 'Failed to load user'
   } finally {
     loading.value = false
   }

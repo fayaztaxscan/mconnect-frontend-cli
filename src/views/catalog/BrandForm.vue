@@ -50,7 +50,18 @@
             />
           </div>
 
-          <div v-if="uploading" class="text-xs text-slate-600 mt-1">Uploading…</div>
+          <div v-if="uploading" class="mt-2">
+            <div class="flex justify-between text-xs text-slate-600 mb-1">
+              <span>Uploading to cloud, please wait…</span>
+              <span>{{ uploadProgress }}%</span>
+            </div>
+            <div class="w-full bg-slate-200 rounded-full h-1.5">
+              <div
+                class="bg-indigo-500 h-1.5 rounded-full transition-all duration-200"
+                :style="{ width: uploadProgress + '%' }"
+              ></div>
+            </div>
+          </div>
           <div v-if="error" class="text-xs text-red-600 mt-1">{{ error }}</div>
         </div>
       </div>
@@ -86,9 +97,10 @@ import { resolveImageUrl } from '@/utils/imageUrl'
 const route = useRoute()
 const router = useRouter()
 
-const isEdit      = computed(() => Boolean(route.params.id))
-const uploading   = ref(false)
-const saving      = ref(false)
+const isEdit        = computed(() => Boolean(route.params.id))
+const uploading     = ref(false)
+const uploadProgress = ref(0)
+const saving        = ref(false)
 const error       = ref('')
 const errorSubmit = ref('')
 const fileInput   = ref(null)
@@ -150,16 +162,22 @@ async function handleUpload(file) {
 
   try {
     uploading.value = true
-    const { url, key } = await uploadBrandLogo(file)
-    // Save relative key in DB so it works across environments/CDN
-    form.image_url = key                      // e.g. "brands/1694600000_logo.png"
-    // Show absolute URL for preview
-    previewUrl.value = url                    // e.g. "http://localhost:3000/uploads/brands/..."
+    uploadProgress.value = 0
+    const { url, key } = await uploadBrandLogo(file, {
+      onProgress: (progressEvent) => {
+        uploadProgress.value = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        )
+      }
+    })
+    form.image_url = url
+    previewUrl.value = url
   } catch (e) {
     error.value = e?.response?.data?.error || 'Upload failed. Try a smaller PNG/JPG (≤2 MB).'
     previewUrl.value = ''
   } finally {
     uploading.value = false
+    uploadProgress.value = 0
   }
 }
 

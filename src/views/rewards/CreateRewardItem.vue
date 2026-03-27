@@ -129,6 +129,9 @@
           {{ saving ? 'Saving…' : 'Save' }}
         </button>
       </div>
+      <p v-if="saving && file" class="text-sm text-slate-600 text-right mt-2">
+        Saving item and uploading image, please wait…
+      </p>
     </form>
   </div>
 </template>

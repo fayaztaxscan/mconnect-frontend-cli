@@ -57,11 +57,12 @@ export function deleteRewardItem(id) {
  * @param {string|number} id
  * @param {File|Blob} file
  */
-export function uploadRewardImage(id, file) {
+export function uploadRewardImage(id, file, options = {}) {
   const fd = new FormData();
   fd.append('image', file);
   return api.post(`/reward-items/${id}/image`, fd, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    ...options,
   });
 }
 

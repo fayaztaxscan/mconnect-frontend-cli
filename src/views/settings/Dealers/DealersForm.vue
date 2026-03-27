@@ -138,13 +138,28 @@
       <div class="flex gap-3">
         <button
           type="submit"
-          :disabled="submitting"
+          :disabled="submitting || uploading"
           class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-60"
         >
-          <span v-if="!submitting">{{ isEdit ? 'Update' : 'Create' }}</span>
-          <span v-else>Saving…</span>
+          <span v-if="uploading && fileBlob">Uploading image…</span>
+          <span v-else-if="submitting">Saving…</span>
+          <span v-else>{{ isEdit ? 'Update' : 'Create' }}</span>
         </button>
         <router-link :to="{ name: 'DealersList' }" class="px-4 py-2 border rounded">Cancel</router-link>
+      </div>
+
+      <!-- Upload progress bar -->
+      <div v-if="uploading && fileBlob" class="mt-3">
+        <div class="flex justify-between text-xs text-slate-600 mb-1">
+          <span>Uploading image</span>
+          <span>{{ uploadProgress }}%</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5">
+          <div
+            class="bg-indigo-500 h-1.5 rounded-full transition-all duration-200"
+            :style="{ width: uploadProgress + '%' }"
+          ></div>
+        </div>
       </div>
     </form>
   </div>
@@ -162,6 +177,8 @@ const router = useRouter()
 
 const isEdit = computed(() => Boolean(route.params.id))
 const submitting = ref(false)
+const uploading = ref(false)
+const uploadProgress = ref(0)
 const error = ref('')
 const success = ref('')
 
@@ -290,12 +307,21 @@ async function handleSubmit() {
   }
 
   submitting.value = true
+  if (fileBlob.value) uploading.value = true
+  uploadProgress.value = 0
+  const uploadConfig = {
+    onUploadProgress: (progressEvent) => {
+      uploadProgress.value = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total
+      )
+    }
+  }
   try {
     if (isEdit.value) {
-      await updateDealer(route.params.id, fd)
+      await updateDealer(route.params.id, fd, uploadConfig)
       success.value = 'Dealer updated'
     } else {
-      await createDealer(fd)
+      await createDealer(fd, uploadConfig)
       success.value = 'Dealer created'
     }
     router.push({ name: 'DealersList' })
@@ -310,6 +336,8 @@ async function handleSubmit() {
     }
   } finally {
     submitting.value = false
+    uploading.value = false
+    uploadProgress.value = 0
   }
 }
 </script>

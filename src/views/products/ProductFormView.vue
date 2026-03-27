@@ -310,11 +310,31 @@
         </router-link>
         <button
           type="submit"
-          :disabled="saving"
+          :disabled="saving || uploading"
           class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
         >
-          {{ saving ? (isEditing ? 'Updating…' : 'Creating…') : (isEditing ? 'Update' : 'Create') }}
+          {{
+            uploading && fileBlob
+              ? 'Uploading image…'
+              : saving
+                ? (isEditing ? 'Updating…' : 'Creating…')
+                : (isEditing ? 'Update' : 'Create')
+          }}
         </button>
+      </div>
+
+      <!-- Upload progress bar -->
+      <div v-if="uploading && fileBlob" class="mt-3">
+        <div class="flex justify-between text-xs text-slate-600 mb-1">
+          <span>Uploading image</span>
+          <span>{{ uploadProgress }}%</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5">
+          <div
+            class="bg-indigo-500 h-1.5 rounded-full transition-all duration-200"
+            :style="{ width: uploadProgress + '%' }"
+          ></div>
+        </div>
       </div>
     </form>
   </div>
@@ -334,6 +354,8 @@ const { success, error: toastError } = useToast()
 
 const isEditing = ref(false)
 const saving = ref(false)
+const uploading = ref(false)
+const uploadProgress = ref(0)
 const error = ref('')
 const hydrating = ref(false)
 
@@ -639,14 +661,25 @@ async function onSubmit() {
   if (fileBlob.value) fd.append('image', fileBlob.value)
 
   saving.value = true
+  if (fileBlob.value) uploading.value = true
+  uploadProgress.value = 0
   try {
+    const uploadConfig = {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000,
+      onUploadProgress: (progressEvent) => {
+        uploadProgress.value = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        )
+      }
+    }
     if (isEditing.value) {
       const id = Number(route.params.id)
-      await api.put(`/products/${id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      await api.put(`/products/${id}`, fd, uploadConfig)
       success('Product updated successfully', { timeout: 4000 })
       await router.push({ name: 'ProductList' })
     } else {
-      const resp = await api.post('/products', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      const resp = await api.post('/products', fd, uploadConfig)
       const created = resp.data?.data || resp.data
       success('Product created successfully', {
         timeout: 5000,
@@ -656,11 +689,17 @@ async function onSubmit() {
       await router.push({ name: 'ProductDetails', params: { id: created.id } })
     }
   } catch (e) {
-    error.value = 'Save failed: ' + (e.response?.data?.message || e.message)
+    if (e.code === 'ECONNABORTED') {
+      error.value = 'Upload timed out. Please try a smaller image or check your connection.'
+    } else {
+      error.value = 'Save failed: ' + (e.response?.data?.message || e.message)
+    }
     toastError('Failed to save product')
     console.error(e)
   } finally {
     saving.value = false
+    uploading.value = false
+    uploadProgress.value = 0
   }
 }
 

@@ -63,9 +63,9 @@ export async function getDealer(id) {
  * - Accepts either FormData (recommended for logo upload) or a plain object.
  * - If plain object is passed, we convert to FormData to support file uploads later without changing callers.
  */
-export async function createDealer(payload) {
+export async function createDealer(payload, options = {}) {
   const body = isFormData(payload) ? payload : toFormData(payload)
-  const { data } = await api.post('/dealers', body)
+  const { data } = await api.post('/dealers', body, options)
   return data
 }
 
@@ -73,9 +73,9 @@ export async function createDealer(payload) {
  * Update dealer
  * - Same FormData behavior as createDealer.
  */
-export async function updateDealer(id, payload) {
+export async function updateDealer(id, payload, options = {}) {
   const body = isFormData(payload) ? payload : toFormData(payload)
-  const { data } = await api.put(`/dealers/${id}`, body)
+  const { data } = await api.put(`/dealers/${id}`, body, options)
   return data
 }
 

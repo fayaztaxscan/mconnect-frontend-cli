@@ -128,10 +128,23 @@
         <button
           type="submit"
           class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-          :disabled="saving"
+          :disabled="saving || uploading"
         >
-          {{ saving ? 'Saving…' : 'Save Changes' }}
+          {{ uploading ? 'Uploading image…' : saving ? 'Saving…' : 'Save Changes' }}
         </button>
+      </div>
+
+      <div v-if="uploading && file" class="mt-3">
+        <div class="flex justify-between text-xs text-slate-600 mb-1">
+          <span>Saving item and uploading image, please wait…</span>
+          <span>{{ uploadProgress }}%</span>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-1.5">
+          <div
+            class="bg-green-500 h-1.5 rounded-full transition-all duration-200"
+            :style="{ width: uploadProgress + '%' }"
+          ></div>
+        </div>
       </div>
     </form>
   </div>
@@ -151,9 +164,11 @@ const route = useRoute();
 const router = useRouter();
 const id     = +route.params.id;
 
-const loading    = ref(false);
-const saving     = ref(false);
-const error      = ref('');
+const loading        = ref(false);
+const saving         = ref(false);
+const uploading      = ref(false);
+const uploadProgress = ref(0);
+const error          = ref('');
 const categories = ref([]);
 const form = ref({
   name: '',
@@ -231,10 +246,21 @@ async function onSubmit() {
   try {
     await updateRewardItem(id, form.value);
     if (file.value) {
+      uploading.value = true;
+      uploadProgress.value = 0;
       try {
-        await uploadRewardImage(id, file.value);
+        await uploadRewardImage(id, file.value, {
+          onUploadProgress: (progressEvent) => {
+            uploadProgress.value = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+          }
+        });
       } catch (upErr) {
         console.warn('Image upload failed:', upErr);
+      } finally {
+        uploading.value = false;
+        uploadProgress.value = 0;
       }
     }
     router.push({ name: 'ViewRewardItem', params: { id } });

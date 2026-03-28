@@ -10,6 +10,23 @@
       <NotificationDropdown v-if="showNotifications" />
     </div>
 
+    <!-- Region switcher — Admin / SuperAdmin only -->
+    <div v-if="isAdmin" class="px-3 py-2 border-b border-slate-100 bg-slate-50">
+      <div class="flex items-center gap-1.5">
+        <span class="text-[11px] text-slate-500 whitespace-nowrap">Viewing:</span>
+        <select
+          v-model="selectedRegionId"
+          @change="onRegionChange"
+          class="flex-1 text-xs border rounded px-1.5 py-1 bg-white text-slate-700 min-w-0"
+        >
+          <option :value="null">All Regions</option>
+          <option v-for="r in regions" :key="r.id" :value="r.id">
+            {{ r.name }} ({{ r.country_code }})
+          </option>
+        </select>
+      </div>
+    </div>
+
     <nav class="flex-1 overflow-y-auto">
       <ul class="mt-2">
 
@@ -219,6 +236,8 @@
 import { ref, watch, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import { useRegionStore } from '@/store/regionStore'
+import { useRegions } from '@/composables/useRegions'
 import NotificationDropdown from '@/components/layout/NotificationDropdown.vue'
 import logo from '@/assets/mconnect_logo.png'
 
@@ -226,13 +245,35 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuth()
 const { logout } = auth
+const regionStore = useRegionStore()
+const { regions, fetchRegions } = useRegions()
 
 const activeSection = ref('')
 
 // role helpers
-const roleName = computed(() => String(auth.currentUser.value?.role_name || '').toUpperCase())
+const roleName = computed(() => String(auth.currentUser.value?.role_name || '').toUpperCase().replace(/\s+/g, ''))
 const isCSR = computed(() => roleName.value === 'CSR')
 const isBDM = computed(() => roleName.value === 'BDM')
+const isAdmin = computed(() => roleName.value === 'ADMIN' || roleName.value === 'SUPERADMIN')
+
+// region switcher
+const selectedRegionId = computed({
+  get: () => regionStore.selectedRegionId,
+  set: (val) => {
+    const region = val == null ? null : (regions.value.find(r => r.id === val) ?? null)
+    regionStore.setRegion(region)
+  }
+})
+
+function onRegionChange() {
+  const region = selectedRegionId.value == null
+    ? null
+    : (regions.value.find(r => r.id === selectedRegionId.value) ?? null)
+  regionStore.setRegion(region)
+}
+
+// Load regions for the switcher when admin is logged in
+watch(isAdmin, (val) => { if (val) fetchRegions() }, { immediate: true })
 
 // If you want notif bell only for admin for now:
 const showNotifications = computed(() => !isCSR.value && !isBDM.value)

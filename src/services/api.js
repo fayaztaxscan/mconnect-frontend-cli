@@ -40,8 +40,22 @@ export function setToken(token) {
 instance.interceptors.request.use(config => {
   const token = getToken()
   if (token) config.headers.Authorization = `Bearer ${token}`
-  // Optional tracing header:
-  // config.headers['X-Request-Id'] = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)
+
+  // Append region_id for admin region filtering
+  try {
+    const { useRegionStore } = require('@/store/regionStore')
+    const regionStore = useRegionStore()
+    if (regionStore.selectedRegionId) {
+      const url = config.url || ''
+      if (url.includes('/products') || url.includes('/reward-items')) {
+        config.params = config.params || {}
+        if (!config.params.region_id) {
+          config.params.region_id = regionStore.selectedRegionId
+        }
+      }
+    }
+  } catch (_) {}
+
   return config
 })
 

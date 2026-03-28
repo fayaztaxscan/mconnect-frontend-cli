@@ -117,6 +117,71 @@
         </select>
       </div>
 
+      <!-- Regional Points & Pricing -->
+      <div class="border rounded-lg overflow-hidden">
+        <button
+          type="button"
+          @click="pricingOpen = !pricingOpen"
+          class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 text-sm font-medium text-gray-700"
+        >
+          <span>Regional Points &amp; Pricing</span>
+          <svg
+            :class="pricingOpen ? 'rotate-180' : ''"
+            class="w-4 h-4 transition-transform"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <div v-if="pricingOpen" class="p-4">
+          <div v-if="pricingLoading" class="text-sm text-gray-500">Loading regions…</div>
+          <div v-else-if="!regionalConfig.length" class="text-sm text-gray-400">No regions found.</div>
+          <div v-else class="space-y-3">
+            <div
+              v-for="row in regionalConfig"
+              :key="row.region_id"
+              class="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 bg-gray-50 rounded-lg border"
+            >
+              <div class="col-span-2 md:col-span-1 flex flex-col justify-center">
+                <span class="font-medium text-sm text-gray-800">{{ row.region_name }}</span>
+                <span class="text-xs text-gray-400">{{ row.currency_code }}</span>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Points Required</label>
+                <input
+                  v-model.number="row.points_required"
+                  type="number" min="0" step="1"
+                  class="w-full border rounded px-2 py-1.5 text-sm"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Market MRP</label>
+                <div class="relative">
+                  <span class="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">{{ row.currency_symbol || row.currency_code }}</span>
+                  <input
+                    v-model.number="row.market_mrp"
+                    type="number" min="0" step="0.01"
+                    class="w-full border rounded px-2 py-1.5 pl-10 text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div class="flex items-end pb-1">
+                <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
+                  <input type="checkbox" v-model="row.is_active" :true-value="1" :false-value="0" class="rounded" />
+                  <span :class="row.is_active ? 'text-green-600' : 'text-gray-400'">
+                    {{ row.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div v-if="pricingSaveError" class="mt-2 text-xs text-amber-600">{{ pricingSaveError }}</div>
+        </div>
+      </div>
+
       <!-- Actions -->
       <div class="flex justify-end space-x-3 pt-4 border-t">
         <router-link
@@ -151,7 +216,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
   getRewardItem,
@@ -159,10 +224,13 @@ import {
   uploadRewardImage,
 } from '@/services/rewardItems';
 import { getRewardCategories } from '@/services/rewardCategories';
+import api from '@/services/api';
+import { useRegions } from '@/composables/useRegions';
 
 const route = useRoute();
 const router = useRouter();
 const id     = +route.params.id;
+const { regions, fetchRegions } = useRegions();
 
 const loading        = ref(false);
 const saving         = ref(false);
@@ -170,6 +238,42 @@ const uploading      = ref(false);
 const uploadProgress = ref(0);
 const error          = ref('');
 const categories = ref([]);
+
+const pricingOpen = ref(false);
+const pricingLoading = ref(false);
+const pricingSaveError = ref('');
+const regionalConfig = ref([]);
+
+async function loadRegionalConfig() {
+  pricingLoading.value = true;
+  try {
+    await fetchRegions();
+    const res = await api.get(`/reward-items/${id}/regional-config`);
+    const serverRegions = res.data?.data?.regions ?? [];
+    regionalConfig.value = regions.value.map(r => {
+      const found = serverRegions.find(sr => sr.region_id === r.id);
+      return {
+        region_id: r.id,
+        region_name: r.name,
+        currency_code: r.currency_code,
+        currency_symbol: r.currency_symbol,
+        points_required: found?.config?.points_required ?? null,
+        market_mrp: found?.config?.market_mrp ?? null,
+        is_active: found?.config?.is_active ?? 1
+      };
+    });
+  } catch (e) {
+    console.error('Failed to load regional config', e);
+  } finally {
+    pricingLoading.value = false;
+  }
+}
+
+watch(pricingOpen, async (open) => {
+  if (open && !regionalConfig.value.length) {
+    await loadRegionalConfig();
+  }
+});
 const form = ref({
   name: '',
   reward_category_id: null,
@@ -261,6 +365,23 @@ async function onSubmit() {
       } finally {
         uploading.value = false;
         uploadProgress.value = 0;
+      }
+    }
+    if (pricingOpen.value) {
+      const rows = regionalConfig.value
+        .filter(r => r.points_required !== null && r.points_required !== '')
+        .map(r => ({
+          region_id: r.region_id,
+          points_required: Number(r.points_required),
+          market_mrp: r.market_mrp !== null && r.market_mrp !== '' ? Number(r.market_mrp) : 0,
+          is_active: r.is_active ? 1 : 0
+        }));
+      if (rows.length) {
+        try {
+          await api.put(`/reward-items/${id}/regional-config`, { config: rows });
+        } catch (pe) {
+          pricingSaveError.value = 'Regional config save failed: ' + (pe.response?.data?.message || pe.message);
+        }
       }
     }
     router.push({ name: 'ViewRewardItem', params: { id } });

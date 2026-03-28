@@ -304,6 +304,93 @@
         </select>
       </div>
 
+      <!-- Regional Pricing & Availability -->
+      <div class="border rounded-lg overflow-hidden">
+        <button
+          type="button"
+          @click="pricingOpen = !pricingOpen"
+          class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 text-sm font-medium text-gray-700"
+        >
+          <span>Regional Pricing &amp; Availability</span>
+          <svg
+            :class="pricingOpen ? 'rotate-180' : ''"
+            class="w-4 h-4 transition-transform"
+            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <div v-if="pricingOpen" class="p-4">
+          <div v-if="pricingLoading" class="text-sm text-gray-500">Loading regions…</div>
+          <div v-else-if="!regionalPricing.length" class="text-sm text-gray-400">No regions found.</div>
+          <div v-else class="space-y-4">
+            <div
+              v-for="row in regionalPricing"
+              :key="row.region_id"
+              class="grid grid-cols-2 md:grid-cols-5 gap-3 p-3 bg-gray-50 rounded-lg border"
+            >
+              <!-- Region label -->
+              <div class="col-span-2 md:col-span-1 flex flex-col justify-center">
+                <span class="font-medium text-sm text-gray-800">{{ row.region_name }}</span>
+                <span class="text-xs text-gray-400">{{ row.currency_code }}</span>
+              </div>
+
+              <!-- Price -->
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Price</label>
+                <div class="relative">
+                  <span class="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">{{ row.currency_symbol || row.currency_code }}</span>
+                  <input
+                    v-model.number="row.price"
+                    type="number" min="0" step="0.01"
+                    class="w-full border rounded px-2 py-1.5 pl-10 text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              <!-- Sale Price -->
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Sale Price</label>
+                <div class="relative">
+                  <span class="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">{{ row.currency_symbol || row.currency_code }}</span>
+                  <input
+                    v-model.number="row.sale_price"
+                    type="number" min="0" step="0.01"
+                    class="w-full border rounded px-2 py-1.5 pl-10 text-sm"
+                    placeholder="optional"
+                  />
+                </div>
+              </div>
+
+              <!-- Reward Points -->
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Reward Pts</label>
+                <input
+                  v-model.number="row.reward_points"
+                  type="number" min="0" step="1"
+                  class="w-full border rounded px-2 py-1.5 text-sm"
+                  placeholder="0"
+                />
+              </div>
+
+              <!-- Active toggle -->
+              <div class="flex items-end pb-1">
+                <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
+                  <input type="checkbox" v-model="row.is_active" :true-value="1" :false-value="0" class="rounded" />
+                  <span :class="row.is_active ? 'text-green-600' : 'text-gray-400'">
+                    {{ row.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="pricingSaveError" class="mt-2 text-xs text-amber-600">{{ pricingSaveError }}</div>
+        </div>
+      </div>
+
       <div class="flex justify-end gap-2">
         <router-link :to="{ name: 'ProductList' }" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
           Cancel
@@ -347,10 +434,12 @@ import api from '@/services/api'
 import { resolveImageUrl } from '@/utils/imageUrl'
 import { useToast } from '@/composables/useToast'
 import { getCategoryAttributeDefs } from '@/services/categories'
+import { useRegions } from '@/composables/useRegions'
 
 const router = useRouter()
 const route = useRoute()
 const { success, error: toastError } = useToast()
+const { regions, fetchRegions, formatPrice } = useRegions()
 
 const isEditing = ref(false)
 const saving = ref(false)
@@ -370,6 +459,12 @@ const attrValues = reactive({}) // key -> value
 const attrLoading = ref(false)
 const attrError = ref('')
 const attrFieldErrors = reactive({}) // key -> message
+
+// Regional pricing state
+const pricingOpen = ref(false)
+const pricingLoading = ref(false)
+const pricingSaveError = ref('')
+const regionalPricing = ref([]) // [{ region_id, region_name, currency_code, currency_symbol, price, sale_price, reward_points, is_active }]
 
 const form = reactive({
   sku: '',
@@ -632,6 +727,67 @@ function buildAttributesPayload() {
   return out
 }
 
+// ---------- regional pricing ----------
+async function loadRegionalPricing(productId) {
+  pricingLoading.value = true
+  try {
+    await fetchRegions()
+    const res = await api.get(`/products/${productId}/regional-pricing`)
+    const serverRegions = res.data?.data?.regions ?? []
+    // Merge server data with all regions, filling gaps with defaults
+    regionalPricing.value = regions.value.map(r => {
+      const found = serverRegions.find(sr => sr.region_id === r.id)
+      return {
+        region_id: r.id,
+        region_name: r.name,
+        currency_code: r.currency_code,
+        currency_symbol: r.currency_symbol,
+        price: found?.pricing?.price ?? null,
+        sale_price: found?.pricing?.sale_price ?? null,
+        reward_points: found?.pricing?.reward_points ?? null,
+        is_active: found?.pricing?.is_active ?? 1
+      }
+    })
+  } catch (e) {
+    console.error('Failed to load regional pricing', e)
+  } finally {
+    pricingLoading.value = false
+  }
+}
+
+async function saveRegionalPricing(productId) {
+  pricingSaveError.value = ''
+  const rows = regionalPricing.value
+    .filter(r => r.price !== null && r.price !== '')
+    .map(r => ({
+      region_id: r.region_id,
+      price: Number(r.price),
+      sale_price: r.sale_price !== '' && r.sale_price !== null ? Number(r.sale_price) : null,
+      reward_points: r.reward_points !== '' && r.reward_points !== null ? Number(r.reward_points) : 0,
+      is_active: r.is_active ? 1 : 0
+    }))
+  if (!rows.length) return
+  await api.put(`/products/${productId}/regional-pricing`, { pricing: rows })
+}
+
+watch(pricingOpen, async (open) => {
+  if (open && isEditing.value && !regionalPricing.value.length) {
+    await loadRegionalPricing(Number(route.params.id))
+  } else if (open && !isEditing.value && !regions.value.length) {
+    await fetchRegions()
+    regionalPricing.value = regions.value.map(r => ({
+      region_id: r.id,
+      region_name: r.name,
+      currency_code: r.currency_code,
+      currency_symbol: r.currency_symbol,
+      price: null,
+      sale_price: null,
+      reward_points: null,
+      is_active: 1
+    }))
+  }
+})
+
 async function onSubmit() {
   if (saving.value) return
   error.value = ''
@@ -676,11 +832,21 @@ async function onSubmit() {
     if (isEditing.value) {
       const id = Number(route.params.id)
       await api.put(`/products/${id}`, fd, uploadConfig)
+      if (pricingOpen.value) {
+        try { await saveRegionalPricing(id) } catch (pe) {
+          pricingSaveError.value = 'Regional pricing save failed: ' + (pe.response?.data?.message || pe.message)
+        }
+      }
       success('Product updated successfully', { timeout: 4000 })
       await router.push({ name: 'ProductList' })
     } else {
       const resp = await api.post('/products', fd, uploadConfig)
       const created = resp.data?.data || resp.data
+      if (pricingOpen.value && created?.id) {
+        try { await saveRegionalPricing(created.id) } catch (pe) {
+          pricingSaveError.value = 'Regional pricing save failed: ' + (pe.response?.data?.message || pe.message)
+        }
+      }
       success('Product created successfully', {
         timeout: 5000,
         actionLabel: 'View product',

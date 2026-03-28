@@ -1,6 +1,5 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import { h } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 
 // Auth & Layout
@@ -68,22 +67,8 @@ const ProductDetails = () => import('@/views/products/ProductDetails.vue')
 // ✅ CSR Signup Requests page
 const CSRSignupRequests = () => import('@/views/csr/SignupRequestsView.vue')
 
-// ✅ BDM page placeholder (so you don’t get blank + no logout)
-// Replace this with a real component import later.
-const BDMRequests = {
-  name: 'BDMRequestsPlaceholder',
-  render() {
-    return h('div', { class: 'p-6 max-w-4xl mx-auto' }, [
-      h('h1', { class: 'text-2xl font-bold mb-2' }, 'BDM Approval Queue'),
-      h('p', { class: 'text-slate-600 mb-4' },
-        'Your BDM approval UI component is not wired yet. This route is now stable (no blank page), and logout/sidebar will work.'
-      ),
-      h('p', { class: 'text-sm text-slate-500' },
-        'Next: create a proper BDM queue view and replace this placeholder route component.'
-      )
-    ])
-  }
-}
+// BDM approval queue
+const BDMRequests = () => import('@/views/bdm/BDMRequestsView.vue')
 
 const routes = [
   // Public

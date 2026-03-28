@@ -300,8 +300,8 @@ router.beforeEach(async (to, _from, next) => {
 
   const roleName = String(auth.currentUser.value?.role_name || '').toUpperCase()
 
-  // Role landing
-  if (to.path === '/' || to.name === 'AdminDashboard') {
+  // Role landing — only trigger on bare '/' to avoid redirect loops
+  if (to.path === '/') {
     if (roleName === 'ADMIN' || roleName === 'SUPERADMIN') return next({ name: 'AdminDashboard' })
     if (roleName === 'CSR') return next({ name: 'CSRSignupRequests' })
     if (roleName === 'BDM') return next({ name: 'BDMRequests' })

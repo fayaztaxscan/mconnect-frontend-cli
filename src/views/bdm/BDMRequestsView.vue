@@ -283,11 +283,12 @@
         <div class="flex items-center justify-end gap-2">
           <button class="px-3 py-2 rounded border text-sm hover:bg-gray-50" @click="closeApprove">Cancel</button>
           <button
-            class="px-4 py-2 rounded bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+            type="button"
+            class="px-4 py-2 rounded bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="!approveModal.confirmed || approveModal.uploading"
             @click="submitApprove"
           >
-            {{ approveModal.uploading ? 'Submitting…' : '✅ Confirm Full Approval' }}
+            {{ approveModal.uploading ? 'Submitting...' : 'Confirm Full Approval' }}
           </button>
         </div>
 
@@ -359,11 +360,12 @@
         <div class="flex items-center justify-end gap-2">
           <button class="px-3 py-2 rounded border text-sm hover:bg-gray-50" @click="closeTempApprove">Cancel</button>
           <button
-            class="px-4 py-2 rounded bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 disabled:opacity-50"
+            type="button"
+            class="px-4 py-2 rounded bg-amber-500 text-white font-medium hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="!tempModal.dueDate || !tempModal.reason.trim() || !tempModal.committed || tempModal.loading"
             @click="submitTempApprove"
           >
-            {{ tempModal.loading ? 'Submitting…' : '⏱ Grant Temporary Approval' }}
+            {{ tempModal.loading ? 'Submitting...' : 'Approve with Photo Deadline' }}
           </button>
         </div>
 
@@ -488,11 +490,12 @@
         <div class="flex items-center justify-end gap-2">
           <button class="px-3 py-2 rounded border text-sm hover:bg-gray-50" @click="closePhotoUpload">Cancel</button>
           <button
-            class="px-4 py-2 rounded bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"
+            type="button"
+            class="px-4 py-2 rounded bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="!photoModal.file || !photoModal.confirmed || photoModal.uploading"
             @click="submitPhoto"
           >
-            {{ photoModal.uploading ? 'Uploading…' : '📷 Submit Verification Photo' }}
+            {{ photoModal.uploading ? 'Uploading...' : 'Submit Verification Photo' }}
           </button>
         </div>
       </div>

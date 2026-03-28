@@ -6,7 +6,7 @@
         <div>
           <h1 class="text-xl sm:text-2xl font-bold">Retail Staff Signup Requests</h1>
           <p class="text-sm text-gray-500">
-            Verify request and map the user to an existing Shop (Region → Dealer → Brand → Division → Shop).
+            Review signup requests from retail staff. Approve by matching them to the correct shop, then BDM will complete the final approval.
           </p>
         </div>
 
@@ -99,7 +99,7 @@
                 </div>
 
                 <div>
-                  <span class="text-gray-500">Shop (typed):</span> {{ r.shop_name }}
+                  <span class="text-gray-500">Applicant's own words:</span> {{ r.shop_name }}
                   <span class="mx-2 text-gray-300">|</span>
                   <span class="text-gray-500">Location:</span> {{ r.location }}
                 </div>
@@ -108,43 +108,21 @@
                   <span class="text-gray-500">Email:</span> {{ r.email }}
                 </div>
 
-                <!-- UTM -->
-                <div class="pt-1">
-                  <span class="text-gray-500">UTM:</span>
-                  <span class="ml-2 inline-flex flex-wrap gap-1">
-                    <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                      source: {{ r.utm_source || '-' }}
-                    </span>
-                    <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                      medium: {{ r.utm_medium || '-' }}
-                    </span>
-                    <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                      campaign: {{ r.utm_campaign || '-' }}
-                    </span>
-                    <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                      content: {{ r.utm_content || '-' }}
-                    </span>
-                    <span class="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                      term: {{ r.utm_term || '-' }}
-                    </span>
-                  </span>
-                </div>
-
-                <!-- Mapped fields (if already verified/mapped) -->
+                <!-- Assigned to (if already verified/mapped) -->
                 <div v-if="r.shop_id || r.dealer_id || r.brand_id || r.division_id" class="pt-1">
-                  <span class="text-gray-500">Mapped:</span>
+                  <span class="text-gray-500">Assigned to:</span>
                   <span class="ml-2 inline-flex flex-wrap gap-1">
                     <span v-if="r.shop_id" class="text-xs px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100">
-                      shop_id: {{ r.shop_id }}
+                      {{ r.shop_name_mapped || ('Shop #' + r.shop_id) }}
                     </span>
                     <span v-if="r.dealer_id" class="text-xs px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100">
-                      dealer_id: {{ r.dealer_id }}
+                      Dealer #{{ r.dealer_id }}
                     </span>
                     <span v-if="r.brand_id" class="text-xs px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100">
-                      brand_id: {{ r.brand_id }}
+                      Brand #{{ r.brand_id }}
                     </span>
                     <span v-if="r.division_id" class="text-xs px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100">
-                      division_id: {{ r.division_id }}
+                      Division #{{ r.division_id }}
                     </span>
                   </span>
                 </div>
@@ -156,40 +134,55 @@
             </div>
 
             <div class="flex items-center gap-2 justify-end">
-              <!-- ✅ Replace Approve with Verify & Map Shop -->
-              <button
-                v-if="status === 'pending' && r.status === 'pending'"
-                type="button"
-                class="px-3 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
-                @click="openMap(r)"
+              <!-- Awaiting BDM badge for already-verified pending requests -->
+              <span
+                v-if="r.csr_verified_at && r.status === 'pending'"
+                class="text-xs px-3 py-1.5 rounded bg-amber-50 text-amber-800 border border-amber-200"
               >
-                Verify &amp; Map Shop
-              </button>
+                ⏳ Awaiting BDM Approval
+              </span>
 
-              <button
-                v-if="status === 'pending' && r.status === 'pending'"
-                type="button"
-                class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50"
-                @click="openReject(r)"
-              >
-                Reject
-              </button>
+              <!-- Approve / Reject buttons for unverified pending requests -->
+              <template v-if="status === 'pending' && r.status === 'pending' && !r.csr_verified_at">
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded bg-green-600 text-white text-sm hover:bg-green-700"
+                  @click="openMap(r)"
+                >
+                  Approve
+                </button>
+
+                <button
+                  type="button"
+                  class="px-3 py-2 rounded bg-white border text-sm hover:bg-gray-50"
+                  @click="openReject(r)"
+                >
+                  Reject
+                </button>
+              </template>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- VERIFY & MAP SHOP MODAL -->
+      <!-- APPROVE REQUEST MODAL -->
       <div v-if="mapOpen" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
         <div class="bg-white rounded-lg shadow max-w-xl w-full p-4 space-y-4">
           <div class="flex items-start justify-between">
             <div>
-              <div class="text-lg font-semibold">Verify &amp; Map Shop</div>
+              <div class="text-lg font-semibold">Approve Request</div>
               <div class="text-sm text-gray-500">
                 {{ selected?.user_name }} — {{ selected?.contact_phone }}
               </div>
             </div>
             <button class="text-gray-500 hover:text-gray-800" @click="closeMap">✕</button>
+          </div>
+
+          <!-- Applicant info box -->
+          <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
+            <div class="font-medium text-blue-800 mb-1">What the applicant entered:</div>
+            <div class="text-blue-700">Shop name: {{ selected?.shop_name || '—' }}</div>
+            <div class="text-blue-700">Location: {{ selected?.location || '—' }}</div>
           </div>
 
           <!-- Region at top -->
@@ -219,13 +212,13 @@
                 @input="debouncedFetchShops()"
                 :disabled="!selected?.region_id"
               />
-              <p class="text-xs text-gray-500 mt-1">
-                Tip: search by last word of locality or shop code.
+              <p class="text-xs text-amber-700 mt-1">
+                The applicant may have spelled their shop name differently. Search and select the correct matching shop from the list.
               </p>
             </div>
 
             <div class="sm:col-span-2">
-              <label class="block text-xs text-gray-600 mb-1">Select Shop *</label>
+              <label class="block text-xs text-gray-600 mb-1">Match to correct Shop *</label>
               <select
                 v-model.number="mapForm.shop_id"
                 class="w-full border rounded px-3 py-2"
@@ -272,18 +265,34 @@
             </div>
           </div>
 
+          <!-- Physical verification checkbox -->
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="physicallyVerified"
+              class="mt-0.5 h-4 w-4 rounded border-gray-300 text-green-600"
+            />
+            <span class="text-sm text-gray-700">
+              I confirm I have physically verified this shop and staff member
+            </span>
+          </label>
+
           <div class="flex items-center justify-end gap-2">
             <button class="px-3 py-2 rounded bg-white border hover:bg-gray-50" @click="closeMap">
               Cancel
             </button>
             <button
-              class="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700"
-              :disabled="mapLoading || !mapForm.shop_id || !selected?.region_id"
+              class="px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="mapLoading || !mapForm.shop_id || !selected?.region_id || !physicallyVerified"
               @click="submitMap"
             >
-              {{ mapLoading ? 'Saving…' : 'Verify & Map' }}
+              {{ mapLoading ? 'Saving…' : 'Confirm Approval' }}
             </button>
           </div>
+
+          <p class="text-xs text-gray-500 mt-2 text-center">
+            After approval, this request will be sent to BDM for final review within 24 hours.
+          </p>
 
           <div v-if="mapError" class="text-sm text-red-600">
             {{ mapError }}
@@ -356,6 +365,7 @@ const mapForm = ref({
   shop_id: '',
   notes: ''
 })
+const physicallyVerified = ref(false)
 
 // Shops list filtered by region
 const shops = ref([])
@@ -447,6 +457,7 @@ function openMap(r) {
   selected.value = r
   mapError.value = ''
   mapForm.value = { shop_id: '', notes: '' }
+  physicallyVerified.value = false
   shops.value = []
   shopSearch.value = ''
   mapOpen.value = true
@@ -456,6 +467,7 @@ function openMap(r) {
 function closeMap() {
   mapOpen.value = false
   selected.value = null
+  physicallyVerified.value = false
 }
 
 async function submitMap() {

@@ -53,11 +53,11 @@
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">From</label>
-            <input type="date" v-model="filters.from" class="border rounded px-3 py-1.5 text-sm" />
+            <input type="date" v-model="filters.date_from" class="border rounded px-3 py-1.5 text-sm" />
           </div>
           <div>
             <label class="block text-xs text-gray-500 mb-1">To</label>
-            <input type="date" v-model="filters.to" class="border rounded px-3 py-1.5 text-sm" />
+            <input type="date" v-model="filters.date_to" class="border rounded px-3 py-1.5 text-sm" />
           </div>
           <button
             type="button"
@@ -235,7 +235,12 @@ const statCards = [
   { key: 'avg_hours_to_approve', label: 'Avg Hours to Approve',color: 'text-blue-600',   filterStatus: null },
 ]
 
-const filters = reactive({ search: '', status: '', from: '', to: '' })
+function today() { return new Date().toISOString().split('T')[0] }
+function ninetyDaysAgo() {
+  return new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+}
+
+const filters = reactive({ search: '', status: '', date_from: ninetyDaysAgo(), date_to: today() })
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage)))
 
 async function load(p = 1) {
@@ -244,8 +249,8 @@ async function load(p = 1) {
   try {
     const params = { page: p, per_page: perPage, ...filters }
     const { data } = await api.get('/retail-signup/admin/pipeline', { params })
-    rows.value = data.rows || []
-    total.value = data.total || 0
+    rows.value = data.rows || data.data || []
+    total.value = data.total || data.pagination?.total || 0
     if (data.stats) Object.assign(stats, data.stats)
   } catch (e) {
     console.error(e)
@@ -257,8 +262,8 @@ async function load(p = 1) {
 function resetFilters() {
   filters.search = ''
   filters.status = ''
-  filters.from = ''
-  filters.to = ''
+  filters.date_from = ninetyDaysAgo()
+  filters.date_to = today()
   load(1)
 }
 

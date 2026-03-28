@@ -33,11 +33,11 @@
       <div class="bg-white border rounded-lg p-4 mb-4 flex flex-wrap gap-3 items-end">
         <div>
           <label class="block text-xs text-gray-500 mb-1">From</label>
-          <input type="date" v-model="filters.from" class="border rounded px-3 py-1.5 text-sm" />
+          <input type="date" v-model="filters.date_from" class="border rounded px-3 py-1.5 text-sm" />
         </div>
         <div>
           <label class="block text-xs text-gray-500 mb-1">To</label>
-          <input type="date" v-model="filters.to" class="border rounded px-3 py-1.5 text-sm" />
+          <input type="date" v-model="filters.date_to" class="border rounded px-3 py-1.5 text-sm" />
         </div>
         <div>
           <label class="block text-xs text-gray-500 mb-1">Approval Type</label>
@@ -229,7 +229,12 @@ const perPage = 20
 
 const stats = reactive({ total: 0, full_approvals: 0, temp_approvals: 0, photo_pending: 0 })
 
-const filters = reactive({ from: '', to: '', approval_type: '', photo_status: '' })
+function today() { return new Date().toISOString().split('T')[0] }
+function ninetyDaysAgo() {
+  return new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+}
+
+const filters = reactive({ date_from: ninetyDaysAgo(), date_to: today(), approval_type: '', photo_status: '' })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / perPage)))
 
@@ -250,8 +255,8 @@ async function load(p = 1) {
 }
 
 function resetFilters() {
-  filters.from = ''
-  filters.to = ''
+  filters.date_from = ninetyDaysAgo()
+  filters.date_to = today()
   filters.approval_type = ''
   filters.photo_status = ''
   load(1)

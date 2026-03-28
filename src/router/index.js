@@ -67,8 +67,13 @@ const ProductDetails = () => import('@/views/products/ProductDetails.vue')
 // ✅ CSR Signup Requests page
 const CSRSignupRequests = () => import('@/views/csr/SignupRequestsView.vue')
 
-// BDM approval queue
+// BDM approval queue + activity
 const BDMRequests = () => import('@/views/bdm/BDMRequestsView.vue')
+const BDMActivity = () => import('@/views/bdm/BDMActivityView.vue')
+
+// Admin management views
+const PipelineMonitor = () => import('@/views/admin/PipelineMonitorView.vue')
+const UTMAnalytics = () => import('@/views/admin/UTMAnalyticsView.vue')
 
 const routes = [
   // Public
@@ -95,7 +100,9 @@ const routes = [
             path: 'notifications',
             name: 'NotificationsView',
             component: () => import('@/views/admin/NotificationsView.vue')
-          }
+          },
+          { path: 'pipeline', name: 'PipelineMonitor', component: PipelineMonitor },
+          { path: 'utm-analytics', name: 'UTMAnalytics', component: UTMAnalytics }
         ]
       },
 
@@ -116,7 +123,8 @@ const routes = [
       {
         path: 'bdm',
         children: [
-          { path: 'requests', name: 'BDMRequests', component: BDMRequests }
+          { path: 'requests', name: 'BDMRequests', component: BDMRequests },
+          { path: 'activity', name: 'BDMActivity', component: BDMActivity }
         ]
       },
 
@@ -305,9 +313,9 @@ router.beforeEach(async (to, _from, next) => {
     if (!allowed.has(to.name)) return next({ name: 'CSRSignupRequests' })
   }
 
-  // BDM restrictions ✅ (only approval queue for now)
+  // BDM restrictions
   if (roleName === 'BDM') {
-    const allowed = new Set(['BDMRequests', 'Login'])
+    const allowed = new Set(['BDMRequests', 'BDMActivity', 'Login'])
     if (!allowed.has(to.name)) return next({ name: 'BDMRequests' })
   }
 

@@ -43,6 +43,18 @@
               </svg>
             </router-link>
           </li>
+          <li class="mb-1">
+            <router-link
+              :to="{ name: 'BDMActivity' }"
+              class="flex items-center justify-between px-4 py-3 rounded-md hover:bg-slate-100"
+              :class="{ 'bg-indigo-50 text-indigo-700 font-medium': route.name === 'BDMActivity' }"
+            >
+              <span class="font-medium">Activity History</span>
+              <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </router-link>
+          </li>
         </template>
 
         <!-- ✅ ADMIN / SUPER ADMIN -->
@@ -63,6 +75,24 @@
               <li><router-link :to="{ name: 'FulfillClaims' }" class="block px-8 py-2 hover:bg-slate-100">Fulfill Claims</router-link></li>
               <li><router-link :to="{ name: 'ManageRewardCategories' }" class="block px-8 py-2 hover:bg-slate-100">Categories</router-link></li>
               <li><router-link :to="{ name: 'ManageRewardItems' }" class="block px-8 py-2 hover:bg-slate-100">Items</router-link></li>
+            </ul>
+          </li>
+
+          <!-- Signup Pipeline -->
+          <li class="mb-1">
+            <div
+              @click="toggle('Pipeline')"
+              class="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-slate-100"
+              :class="{ 'bg-indigo-50 text-indigo-700': activeSection === 'Pipeline' }"
+            >
+              <span class="font-medium">Signup Pipeline</span>
+              <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-90': activeSection === 'Pipeline' }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
+            <ul v-if="activeSection === 'Pipeline'" class="bg-slate-50 border-t border-slate-200">
+              <li><router-link :to="{ name: 'PipelineMonitor' }" class="block px-8 py-2 hover:bg-slate-100">Pipeline Monitor</router-link></li>
+              <li><router-link :to="{ name: 'UTMAnalytics' }" class="block px-8 py-2 hover:bg-slate-100">UTM Analytics</router-link></li>
             </ul>
           </li>
 
@@ -236,6 +266,10 @@ function setActive() {
     ['NotificationsView','AuditLogs','ManageUsers','AddUser','EditUser','UserDetails'].includes(name)
   ) {
     activeSection.value = 'Settings'
+  } else if (
+    ['PipelineMonitor','UTMAnalytics'].includes(name)
+  ) {
+    activeSection.value = 'Pipeline'
   } else {
     activeSection.value = ''
   }

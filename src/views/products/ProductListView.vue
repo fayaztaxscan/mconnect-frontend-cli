@@ -82,6 +82,18 @@
       </div>
     </div>
 
+    <!-- Region-switching banner -->
+    <div
+      v-if="regionSwitching"
+      class="mb-3 px-4 py-2 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-sm flex items-center gap-2"
+    >
+      <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+      </svg>
+      Updating prices for {{ regionStore.selectedRegion?.name || 'selected region' }}…
+    </div>
+
     <!-- Table -->
     <div class="overflow-x-auto border rounded bg-white">
       <table class="min-w-full text-sm border-collapse">
@@ -209,14 +221,41 @@
             </td>
 
 
-            <td class="px-4 py-2 border text-right">₹ {{ n(p.price) }}</td>
-
+            <!-- Rate column -->
             <td class="px-4 py-2 border text-right">
-              <span v-if="p.sale_price !== null">₹ {{ n(p.sale_price) }}</span>
-              <span v-else class="text-gray-400">—</span>
+              <template v-if="hasRegion">
+                <span v-if="p.regional_price > 0" class="font-medium">
+                  {{ p.currency_symbol || p.currency_code }} {{ n(p.regional_price) }}
+                </span>
+                <span v-else class="text-amber-500 text-xs">— Not priced</span>
+              </template>
+              <template v-else>
+                ₹ {{ n(p.price) }}
+              </template>
             </td>
 
-            <td class="px-4 py-2 border text-right">{{ p.reward_points }}</td>
+            <!-- Sale Price column -->
+            <td class="px-4 py-2 border text-right">
+              <template v-if="hasRegion">
+                <span v-if="p.regional_sale_price > 0" class="font-medium">
+                  {{ p.currency_symbol || p.currency_code }} {{ n(p.regional_sale_price) }}
+                </span>
+                <span v-else class="text-gray-400">—</span>
+              </template>
+              <template v-else>
+                <span v-if="p.sale_price !== null">₹ {{ n(p.sale_price) }}</span>
+                <span v-else class="text-gray-400">—</span>
+              </template>
+            </td>
+
+            <!-- Points column -->
+            <td class="px-4 py-2 border text-right">
+              <template v-if="hasRegion">
+                <span v-if="p.regional_reward_points != null">{{ p.regional_reward_points }}</span>
+                <span v-else class="text-gray-400">—</span>
+              </template>
+              <template v-else>{{ p.reward_points }}</template>
+            </td>
 
             <td class="px-4 py-2 border text-center">
               <span
@@ -290,8 +329,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import api from '@/services/api'
+import { useRegionStore } from '@/store/regionStore'
+
+const regionStore = useRegionStore()
+const hasRegion = computed(() => !!regionStore.selectedRegionId)
+const regionSwitching = ref(false)
+
+watch(
+  () => regionStore.selectedRegionId,
+  async (newId, oldId) => {
+    if (newId === oldId) return
+    regionSwitching.value = true
+    meta.value.page = 1
+    try {
+      await fetchProducts(1)
+    } finally {
+      regionSwitching.value = false
+    }
+  }
+)
 
 const products = ref([])
 const loading = ref(false)

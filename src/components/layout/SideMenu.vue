@@ -17,7 +17,8 @@
         <select
           v-model="selectedRegionId"
           @change="onRegionChange"
-          class="flex-1 text-xs border rounded px-1.5 py-1 bg-white text-slate-700 min-w-0"
+          :disabled="switching"
+          :class="['flex-1 text-xs border rounded px-1.5 py-1 bg-white text-slate-700 min-w-0', switching ? 'opacity-50 cursor-wait' : '']"
         >
           <option :value="null">All Regions</option>
           <option v-for="r in regions" :key="r.id" :value="r.id">
@@ -257,6 +258,7 @@ const isBDM = computed(() => roleName.value === 'BDM')
 const isAdmin = computed(() => roleName.value === 'ADMIN' || roleName.value === 'SUPERADMIN')
 
 // region switcher
+const switching = ref(false)
 const selectedRegionId = computed({
   get: () => regionStore.selectedRegionId,
   set: (val) => {
@@ -265,11 +267,14 @@ const selectedRegionId = computed({
   }
 })
 
-function onRegionChange() {
+async function onRegionChange() {
+  switching.value = true
   const region = selectedRegionId.value == null
     ? null
     : (regions.value.find(r => r.id === selectedRegionId.value) ?? null)
   regionStore.setRegion(region)
+  await new Promise(r => setTimeout(r, 100))
+  switching.value = false
 }
 
 // Load regions for the switcher when admin is logged in

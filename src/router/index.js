@@ -294,6 +294,7 @@ router.beforeEach(async (to, _from, next) => {
 
   // Role landing
   if (to.path === '/' || to.name === 'AdminDashboard') {
+    if (roleName === 'ADMIN' || roleName === 'SUPERADMIN') return next({ name: 'AdminDashboard' })
     if (roleName === 'CSR') return next({ name: 'CSRSignupRequests' })
     if (roleName === 'BDM') return next({ name: 'BDMRequests' })
   }
